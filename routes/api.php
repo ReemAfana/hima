@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Tenant\FavoriteController;
 use App\Http\Controllers\Api\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Api\Host\PropertyController as HostPropertyController;
 use App\Http\Controllers\Api\Host\BookingController as HostBookingController;
@@ -22,7 +23,7 @@ Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
 Route::post('/reset-password',  [PasswordResetController::class, 'reset']);
-
+Route::get('/properties/{id}/whatsapp', [PropertyController::class, 'whatsappLink']);
 // Public property search
 Route::get('/properties',              [PropertyController::class, 'index']);
 Route::get('/properties/{id}',         [PropertyController::class, 'show']);
@@ -109,5 +110,9 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::get('/bookings/{id}',    [TenantBookingController::class, 'show']);
         Route::put('/bookings/{id}',    [TenantBookingController::class, 'update']);
         Route::delete('/bookings/{id}', [TenantBookingController::class, 'destroy']);
+        // Favorites
+        Route::get('/favorites',              [FavoriteController::class, 'index']);
+        Route::post('/favorites',             [FavoriteController::class, 'store']);
+        Route::delete('/favorites/{propertyId}', [FavoriteController::class, 'destroy']);
     });
 });

@@ -48,4 +48,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
         $this->notify(new \Illuminate\Auth\Notifications\ResetPassword($token));
     }
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class, 'tenant_id');
+    }
 }

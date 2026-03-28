@@ -76,4 +76,35 @@ class PropertyController extends Controller
 
         return response()->json($property);
     }
+    // Generate WhatsApp contact link for a property
+    public function whatsappLink($id)
+    {
+        $property = Property::public()
+            ->with('host:id,first_name,last_name,phone')
+            ->findOrFail($id);
+
+        if (!$property->host->phone) {
+            return response()->json([
+                'message' => 'Host has no phone number listed.',
+            ], 404);
+        }
+
+        // Build the auto message
+        $message = "Hello, I found your property on Hima platform and I'm interested:\n\n"
+            . "Property: {$property->title}\n"
+            . "Location: {$property->location}\n"
+            . "Price: {$property->price} per month\n"
+            . "Type: {$property->type}\n\n"
+            . "Can we discuss more details?";
+
+        // Clean phone number and build WhatsApp link
+        $phone = preg_replace('/[^0-9]/', '', $property->host->phone);
+        $link  = 'https://wa.me/' . $phone . '?text=' . urlencode($message);
+
+        return response()->json([
+            'whatsapp_link' => $link,
+            'host'          => $property->host->first_name . ' ' . $property->host->last_name,
+            'phone'         => $property->host->phone,
+        ]);
+    }
 }
