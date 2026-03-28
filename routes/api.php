@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Api\Host\PropertyController as HostPropertyController;
 use App\Http\Controllers\Api\Host\BookingController as HostBookingController;
 use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
@@ -17,22 +18,16 @@ use Illuminate\Support\Facades\Route;
 // =====================
 // Public routes
 // =====================
-Route::post('/register',         [AuthController::class, 'register']);
-Route::post('/login',            [AuthController::class, 'login']);
-Route::post('/forgot-password',  [PasswordResetController::class, 'sendLink']);
-Route::post('/reset-password',   [PasswordResetController::class, 'reset']);
+Route::post('/register',        [AuthController::class, 'register']);
+Route::post('/login',           [AuthController::class, 'login']);
+Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
+Route::post('/reset-password',  [PasswordResetController::class, 'reset']);
 
 // Public property search
-Route::get('/properties',                        [PropertyController::class, 'index']);
-Route::get('/properties/{id}',                   [PropertyController::class, 'show']);
-Route::get('/properties/{id}/reviews',           [ReviewController::class, 'propertyReviews']);
-Route::get('/users/{id}/reviews',                [ReviewController::class, 'userReviews']);
-
-// Profile management
-Route::put('/profile',                 [ProfileController::class, 'update']);
-Route::post('/profile/picture',        [ProfileController::class, 'uploadPicture']);
-Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
-Route::put('/profile/change-email',    [ProfileController::class, 'changeEmail']);
+Route::get('/properties',              [PropertyController::class, 'index']);
+Route::get('/properties/{id}',         [PropertyController::class, 'show']);
+Route::get('/properties/{id}/reviews', [ReviewController::class, 'propertyReviews']);
+Route::get('/users/{id}/reviews',      [ReviewController::class, 'userReviews']);
 
 // Email verification
 Route::get('/email/verify/{id}/{hash}', function () {
@@ -51,7 +46,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me',      [AuthController::class, 'me']);
 
-    // Contracts (tenant, host, admin)
+    // Profile management
+    Route::put('/profile',                 [ProfileController::class, 'update']);
+    Route::post('/profile/picture',        [ProfileController::class, 'uploadPicture']);
+    Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
+    Route::put('/profile/change-email',    [ProfileController::class, 'changeEmail']);
+
+    // Contracts
     Route::get('/contracts',               [ContractController::class, 'index']);
     Route::get('/contracts/{id}',          [ContractController::class, 'show']);
     Route::patch('/contracts/{id}/cancel', [ContractController::class, 'cancel']);
@@ -70,7 +71,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Host routes
     // =====================
     Route::middleware('role:host')->prefix('host')->group(function () {
-        // Property
         Route::get('/properties',                      [HostPropertyController::class, 'index']);
         Route::post('/properties',                     [HostPropertyController::class, 'store']);
         Route::get('/properties/{id}',                 [HostPropertyController::class, 'show']);
@@ -78,7 +78,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::delete('/properties/{id}',              [HostPropertyController::class, 'destroy']);
         Route::patch('/properties/{id}/availability',  [HostPropertyController::class, 'toggleAvailability']);
 
-        // Bookings
         Route::get('/bookings',               [HostBookingController::class, 'index']);
         Route::patch('/bookings/{id}/accept', [HostBookingController::class, 'accept']);
         Route::patch('/bookings/{id}/reject', [HostBookingController::class, 'reject']);
@@ -88,11 +87,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Admin routes
     // =====================
     Route::middleware('role:admin')->prefix('admin')->group(function () {
+        // Properties
         Route::get('/properties',               [AdminPropertyController::class, 'index']);
         Route::get('/properties/pending',       [AdminPropertyController::class, 'pending']);
         Route::patch('/properties/{id}/accept', [AdminPropertyController::class, 'accept']);
         Route::patch('/properties/{id}/reject', [AdminPropertyController::class, 'reject']);
         Route::delete('/properties/{id}',       [AdminPropertyController::class, 'destroy']);
+
+        // Bookings
+        Route::get('/bookings',          [AdminBookingController::class, 'index']);
+        Route::get('/bookings/{id}',     [AdminBookingController::class, 'show']);
+        Route::delete('/bookings/stale', [AdminBookingController::class, 'archiveStale']);
     });
 
     // =====================
