@@ -93,7 +93,20 @@ has_water, has_electricity, is_ready
 | PATCH | `/notifications/mark-all-read` | Yes | Mark all as read |
 
 ---
+## Notification Types
+| Type | Sent to | Trigger |
+|------|---------|---------|
+| `new_booking` | Host | Tenant submits booking request |
+| `booking_accepted` | Tenant | Host accepts booking |
+| `booking_rejected` | Tenant | Host rejects booking |
+| `booking_edited` | Host | Tenant edits booking |
+| `booking_cancelled` | Host | Tenant cancels booking |
+| `contract_cancelled` | Other party | Tenant or host cancels contract |
+| `property_approved` | Host | Admin approves property |
+| `property_rejected` | Host | Admin rejects property |
+| `review_received` | Reviewee | Someone submits a review |
 
+---
 ## Admin Endpoints
 | Method | URL | Auth | Description |
 |--------|-----|------|-------------|

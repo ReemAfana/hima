@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Property;
 use Illuminate\Http\Request;
-
+use App\Services\NotificationService;
 class BookingController extends Controller
 {
     // List all bookings for the tenant
@@ -58,7 +58,14 @@ class BookingController extends Controller
             'price'       => $property->price,
             'status'      => 'pending',
         ]);
-
+        // Notify host
+        NotificationService::send(
+            $property->host_id,
+            'New Booking Request',
+            'You have a new booking request for "' . $property->title . '".',
+            'new_booking',
+            $booking->id
+        );
         return response()->json([
             'message' => 'Booking request submitted successfully.',
             'booking' => $booking,
@@ -93,7 +100,15 @@ class BookingController extends Controller
         ]);
 
         $booking->update($data);
-
+        // Notify host
+        $property = $booking->property;
+        NotificationService::send(
+            $property->host_id,
+            'Booking Edited',
+            'A tenant has edited their booking request for "' . $property->title . '".',
+            'booking_edited',
+            $booking->id
+        );
         return response()->json([
             'message' => 'Booking updated successfully.',
             'booking' => $booking,
@@ -113,7 +128,15 @@ class BookingController extends Controller
         }
 
         $booking->update(['status' => 'cancelled']);
-
+        // Notify host
+        $property = $booking->property;
+        NotificationService::send(
+            $property->host_id,
+            'Booking Cancelled',
+            'A tenant has cancelled their booking request for "' . $property->title . '".',
+            'booking_cancelled',
+            $booking->id
+        );
         return response()->json([
             'message' => 'Booking cancelled successfully.',
         ]);
