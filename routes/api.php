@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\ContractController;
+use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\Host\PropertyController as HostPropertyController;
 use App\Http\Controllers\Api\Host\BookingController as HostBookingController;
 use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
@@ -17,8 +19,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
 // Public property search
-Route::get('/properties',      [PropertyController::class, 'index']);
-Route::get('/properties/{id}', [PropertyController::class, 'show']);
+Route::get('/properties',                        [PropertyController::class, 'index']);
+Route::get('/properties/{id}',                   [PropertyController::class, 'show']);
+Route::get('/properties/{id}/reviews',           [ReviewController::class, 'propertyReviews']);
+Route::get('/users/{id}/reviews',                [ReviewController::class, 'userReviews']);
 
 // Email verification
 Route::get('/email/verify/{id}/{hash}', function () {
@@ -38,10 +42,19 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/me',      [AuthController::class, 'me']);
 
     // Contracts (tenant, host, admin)
-    Route::get('/contracts',              [ContractController::class, 'index']);
-    Route::get('/contracts/{id}',         [ContractController::class, 'show']);
-    Route::patch('/contracts/{id}/cancel',[ContractController::class, 'cancel']);
-    Route::delete('/contracts/{id}',      [ContractController::class, 'destroy']);
+    Route::get('/contracts',               [ContractController::class, 'index']);
+    Route::get('/contracts/{id}',          [ContractController::class, 'show']);
+    Route::patch('/contracts/{id}/cancel', [ContractController::class, 'cancel']);
+    Route::delete('/contracts/{id}',       [ContractController::class, 'destroy']);
+
+    // Reviews
+    Route::post('/reviews', [ReviewController::class, 'store']);
+
+    // Notifications
+    Route::get('/notifications',                    [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count',        [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{id}/read',         [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/mark-all-read',     [NotificationController::class, 'markAllAsRead']);
 
     // =====================
     // Host routes

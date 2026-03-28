@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Host;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Contract;
-use App\Models\Property;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -44,10 +44,23 @@ class BookingController extends Controller
         $booking->property->update(['availability' => 'booked']);
 
         // Reject all other pending bookings for the same property
-        Booking::where('property_id', $booking->property_id)
+        $rejectedBookings = Booking::where('property_id', $booking->property_id)
             ->where('id', '!=', $booking->id)
             ->where('status', 'pending')
-            ->update(['status' => 'rejected']);
+            ->get();
+
+        foreach ($rejectedBookings as $rejected) {
+            $rejected->update(['status' => 'rejected']);
+
+            // Notify other tenants their booking was rejected
+            NotificationService::send(
+                $rejected->tenant_id,
+                'Booking Request Rejected',
+                'Your booking request for "' . $booking->property->title . '" was rejected because the property has been booked by another tenant.',
+                'booking_rejected',
+                $rejected->id
+            );
+        }
 
         // Auto-create contract
         $contract = Contract::create([
@@ -60,6 +73,15 @@ class BookingController extends Controller
             'price'       => $booking->price,
             'status'      => 'active',
         ]);
+
+        // Notify tenant their booking was accepted
+        NotificationService::send(
+            $booking->tenant_id,
+            'Booking Request Accepted',
+            'Your booking request for "' . $booking->property->title . '" has been accepted. Your contract is now active.',
+            'booking_accepted',
+            $booking->id
+        );
 
         return response()->json([
             'message'  => 'Booking accepted and contract created.',
@@ -83,6 +105,15 @@ class BookingController extends Controller
         }
 
         $booking->update(['status' => 'rejected']);
+
+        // Notify tenant
+        NotificationService::send(
+            $booking->tenant_id,
+            'Booking Request Rejected',
+            'Your booking request for "' . $booking->property->title . '" has been rejected by the host.',
+            'booking_rejected',
+            $booking->id
+        );
 
         return response()->json([
             'message' => 'Booking rejected.',

@@ -47,4 +47,9 @@ class Contract extends Model
     {
         return $this->belongsTo(Property::class);
     }
+    // Contract has reviews
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 }

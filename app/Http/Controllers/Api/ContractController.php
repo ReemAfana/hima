@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class ContractController extends Controller
@@ -22,7 +23,6 @@ class ContractController extends Controller
             $query->where('host_id', $user->id)
                   ->with('tenant:id,first_name,last_name,phone');
         } elseif ($role === 'admin') {
-            // Admin sees all but price and tenant details are visible
             $query->with('tenant:id,first_name,last_name')
                   ->with('host:id,first_name,last_name');
         }
@@ -81,6 +81,27 @@ class ContractController extends Controller
 
         // Free up the property
         $contract->property->update(['availability' => 'available']);
+
+        // Notify the other party
+        if ($role === 'tenant') {
+            // Notify host
+            NotificationService::send(
+                $contract->host_id,
+                'Contract Cancelled',
+                'The tenant has cancelled the contract for "' . $contract->property->title . '".',
+                'contract_cancelled',
+                $contract->id
+            );
+        } elseif ($role === 'host') {
+            // Notify tenant
+            NotificationService::send(
+                $contract->tenant_id,
+                'Contract Cancelled',
+                'The host has cancelled the contract for "' . $contract->property->title . '".',
+                'contract_cancelled',
+                $contract->id
+            );
+        }
 
         return response()->json([
             'message'  => 'Contract cancelled successfully.',
