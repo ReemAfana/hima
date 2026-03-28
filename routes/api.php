@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\Host\PropertyController as HostPropertyController;
 use App\Http\Controllers\Api\Host\BookingController as HostBookingController;
 use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController;
@@ -26,6 +27,12 @@ Route::get('/properties',                        [PropertyController::class, 'in
 Route::get('/properties/{id}',                   [PropertyController::class, 'show']);
 Route::get('/properties/{id}/reviews',           [ReviewController::class, 'propertyReviews']);
 Route::get('/users/{id}/reviews',                [ReviewController::class, 'userReviews']);
+
+// Profile management
+Route::put('/profile',                 [ProfileController::class, 'update']);
+Route::post('/profile/picture',        [ProfileController::class, 'uploadPicture']);
+Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
+Route::put('/profile/change-email',    [ProfileController::class, 'changeEmail']);
 
 // Email verification
 Route::get('/email/verify/{id}/{hash}', function () {
