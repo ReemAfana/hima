@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Host;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Contract;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
@@ -36,7 +37,7 @@ class BookingController extends Controller
             ], 403);
         }
 
-        // Update booking status
+        // Accept the booking
         $booking->update(['status' => 'accepted']);
 
         // Update property availability to booked
@@ -48,9 +49,22 @@ class BookingController extends Controller
             ->where('status', 'pending')
             ->update(['status' => 'rejected']);
 
+        // Auto-create contract
+        $contract = Contract::create([
+            'booking_id'  => $booking->id,
+            'tenant_id'   => $booking->tenant_id,
+            'host_id'     => $request->user()->id,
+            'property_id' => $booking->property_id,
+            'start_date'  => $booking->start_date,
+            'end_date'    => $booking->end_date,
+            'price'       => $booking->price,
+            'status'      => 'active',
+        ]);
+
         return response()->json([
-            'message' => 'Booking accepted successfully.',
-            'booking' => $booking,
+            'message'  => 'Booking accepted and contract created.',
+            'booking'  => $booking,
+            'contract' => $contract,
         ]);
     }
 
