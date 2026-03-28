@@ -48,4 +48,9 @@ class Property extends Model
         return $query->where('status', 'accepted')
                      ->where('availability', 'available');
     }
+    // Property has many bookings
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }
