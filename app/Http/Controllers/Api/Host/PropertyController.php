@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Host;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use Illuminate\Http\Request;
-
+use App\Services\NotificationService;
 class PropertyController extends Controller
 {
     // List all properties belonging to the host
@@ -41,7 +41,17 @@ class PropertyController extends Controller
             'status'       => 'pending',
             'availability' => 'not_available',
         ]);
-
+        // Notify all admins
+        $admins = \App\Models\User::role('admin')->get();
+        foreach ($admins as $admin) {
+            NotificationService::send(
+                $admin->id,
+                'New Property Submitted',
+                'A new property "' . $property->title . '" has been submitted and requires your review.',
+                'new_property_submitted',
+                $property->id
+            );
+        }
         return response()->json([
             'message'  => 'Property submitted successfully. Waiting for admin approval.',
             'property' => $property,
@@ -94,7 +104,17 @@ class PropertyController extends Controller
         }
 
         $property->update($data);
-
+        // Notify all admins
+        $admins = \App\Models\User::role('admin')->get();
+        foreach ($admins as $admin) {
+            NotificationService::send(
+                $admin->id,
+                'Property Modified',
+                'The property "' . $property->title . '" has been modified and may require your review.',
+                'property_modified',
+                $property->id
+            );
+        }
         return response()->json([
             'message'  => 'Property updated successfully.',
             'property' => $property,

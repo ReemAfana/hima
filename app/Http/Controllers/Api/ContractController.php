@@ -81,7 +81,22 @@ class ContractController extends Controller
 
         // Free up the property
         $contract->property->update(['availability' => 'available']);
+        // Send review reminder to both parties
+        NotificationService::send(
+            $contract->tenant_id,
+            'Review Reminder',
+            'Your contract for "' . $contract->property->title . '" has ended. Please take a moment to leave a review.',
+            'review_reminder',
+            $contract->id
+        );
 
+        NotificationService::send(
+            $contract->host_id,
+            'Review Reminder',
+            'Your contract for "' . $contract->property->title . '" has ended. Please take a moment to review the tenant.',
+            'review_reminder',
+            $contract->id
+        );
         // Notify the other party
         if ($role === 'tenant') {
             // Notify host

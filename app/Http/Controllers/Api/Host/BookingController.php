@@ -37,6 +37,21 @@ class BookingController extends Controller
             ], 403);
         }
 
+        // Optional discount
+        $data = $request->validate([
+            'discounted_price' => 'nullable|numeric|min:0',
+        ]);
+
+        // Apply discount if provided
+        $finalPrice = isset($data['discounted_price'])
+            ? $data['discounted_price']
+            : $booking->price;
+
+        // Update booking price if discounted
+        if (isset($data['discounted_price'])) {
+            $booking->update(['price' => $finalPrice]);
+        }
+
         // Accept the booking
         $booking->update(['status' => 'accepted']);
 
@@ -62,7 +77,7 @@ class BookingController extends Controller
             );
         }
 
-        // Auto-create contract
+        // Auto-create contract with final price
         $contract = Contract::create([
             'booking_id'  => $booking->id,
             'tenant_id'   => $booking->tenant_id,
@@ -70,7 +85,7 @@ class BookingController extends Controller
             'property_id' => $booking->property_id,
             'start_date'  => $booking->start_date,
             'end_date'    => $booking->end_date,
-            'price'       => $booking->price,
+            'price'       => $finalPrice,
             'status'      => 'active',
         ]);
 
@@ -102,9 +117,10 @@ class BookingController extends Controller
         );
 
         return response()->json([
-            'message'  => 'Booking accepted and contract created.',
-            'booking'  => $booking,
-            'contract' => $contract,
+            'message'      => 'Booking accepted and contract created.',
+            'booking'      => $booking,
+            'contract'     => $contract,
+            'final_price'  => $finalPrice,
         ]);
     }
 
