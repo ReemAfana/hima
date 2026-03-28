@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
@@ -15,8 +16,10 @@ use Illuminate\Support\Facades\Route;
 // =====================
 // Public routes
 // =====================
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/register',         [AuthController::class, 'register']);
+Route::post('/login',            [AuthController::class, 'login']);
+Route::post('/forgot-password',  [PasswordResetController::class, 'sendLink']);
+Route::post('/reset-password',   [PasswordResetController::class, 'reset']);
 
 // Public property search
 Route::get('/properties',                        [PropertyController::class, 'index']);
@@ -51,10 +54,10 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('/reviews', [ReviewController::class, 'store']);
 
     // Notifications
-    Route::get('/notifications',                    [NotificationController::class, 'index']);
-    Route::get('/notifications/unread-count',        [NotificationController::class, 'unreadCount']);
-    Route::patch('/notifications/{id}/read',         [NotificationController::class, 'markAsRead']);
-    Route::patch('/notifications/mark-all-read',     [NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications',                 [NotificationController::class, 'index']);
+    Route::get('/notifications/unread-count',    [NotificationController::class, 'unreadCount']);
+    Route::patch('/notifications/{id}/read',     [NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
 
     // =====================
     // Host routes

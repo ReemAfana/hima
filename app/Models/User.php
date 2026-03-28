@@ -36,7 +36,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(function ($notifiable, $token) {
+            return url('/api/reset-password?token=' . $token . '&email=' . urlencode($notifiable->email));
+        });
+
+        $this->notify(new \Illuminate\Auth\Notifications\ResetPassword($token));
     }
 }
