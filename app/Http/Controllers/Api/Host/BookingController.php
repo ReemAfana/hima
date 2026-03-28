@@ -74,6 +74,24 @@ class BookingController extends Controller
             'status'      => 'active',
         ]);
 
+        // Notify tenant - contract activated
+        NotificationService::send(
+            $booking->tenant_id,
+            'Contract Activated',
+            'Your rental contract for "' . $booking->property->title . '" is now active.',
+            'contract_activated',
+            $contract->id
+        );
+
+        // Notify host - contract activated
+        NotificationService::send(
+            $request->user()->id,
+            'Contract Activated',
+            'A rental contract for "' . $booking->property->title . '" has been activated.',
+            'contract_activated',
+            $contract->id
+        );
+
         // Notify tenant their booking was accepted
         NotificationService::send(
             $booking->tenant_id,
