@@ -145,3 +145,28 @@ pending → cancelled (by tenant)
 active → expired (automatic)
 active → cancelled (by tenant or host)
 ```
+## Favorites Endpoints (Tenant only)
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| GET | `/tenant/favorites` | Yes | List my favorites |
+| POST | `/tenant/favorites` | Yes | Add property to favorites |
+| DELETE | `/tenant/favorites/{propertyId}` | Yes | Remove from favorites |
+
+## WhatsApp Integration
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| GET | `/properties/{id}/whatsapp` | No | Get WhatsApp link for property |
+
+## Password Reset
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| POST | `/forgot-password` | No | Send reset link to email |
+| POST | `/reset-password` | No | Reset password with token |
+
+## Profile Management
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| PUT | `/profile` | Yes | Update phone and address |
+| POST | `/profile/picture` | Yes | Upload profile picture |
+| PUT | `/profile/change-password` | Yes | Change password |
+| PUT | `/profile/change-email` | Yes | Change email |
