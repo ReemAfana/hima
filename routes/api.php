@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\Host\PropertyImageController;
 use App\Http\Controllers\Api\Tenant\FavoriteController;
 use App\Http\Controllers\Api\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Api\Host\PropertyController as HostPropertyController;
@@ -78,7 +79,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::put('/properties/{id}',                 [HostPropertyController::class, 'update']);
         Route::delete('/properties/{id}',              [HostPropertyController::class, 'destroy']);
         Route::patch('/properties/{id}/availability',  [HostPropertyController::class, 'toggleAvailability']);
-
+        // Property Images
+        Route::get('/properties/{propertyId}/images',           [PropertyImageController::class, 'index']);
+        Route::post('/properties/{propertyId}/images',          [PropertyImageController::class, 'store']);
+        Route::patch('/properties/{propertyId}/images/{imageId}/main', [PropertyImageController::class, 'setMain']);
+        Route::delete('/properties/{propertyId}/images/{imageId}',     [PropertyImageController::class, 'destroy']);
         Route::get('/bookings',               [HostBookingController::class, 'index']);
         Route::patch('/bookings/{id}/accept', [HostBookingController::class, 'accept']);
         Route::patch('/bookings/{id}/reject', [HostBookingController::class, 'reject']);

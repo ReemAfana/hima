@@ -170,3 +170,19 @@ active → cancelled (by tenant or host)
 | POST | `/profile/picture` | Yes | Upload profile picture |
 | PUT | `/profile/change-password` | Yes | Change password |
 | PUT | `/profile/change-email` | Yes | Change email |
+
+## Property Images (Host only)
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| GET | `/host/properties/{id}/images` | Yes | List property images |
+| POST | `/host/properties/{id}/images` | Yes | Upload images (form-data) |
+| PATCH | `/host/properties/{id}/images/{imageId}/main` | Yes | Set image as main |
+| DELETE | `/host/properties/{id}/images/{imageId}` | Yes | Delete image |
+
+### Image Upload Notes
+- Body type must be `form-data` NOT raw JSON
+- Key name must be `images[]`
+- Allowed types: jpg, jpeg, png
+- Max size: 2MB per image
+- Max count: 10 images per property
+- First uploaded image is automatically set as main

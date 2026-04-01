@@ -53,4 +53,15 @@ class Property extends Model
     {
         return $this->hasMany(Booking::class);
     }
+    // Property has many images
+    public function images()
+    {
+        return $this->hasMany(PropertyImage::class);
+    }
+
+    // Get main image
+    public function mainImage()
+    {
+        return $this->hasOne(PropertyImage::class)->where('is_main', true);
+    }
 }
