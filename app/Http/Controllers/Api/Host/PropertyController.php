@@ -22,17 +22,20 @@ class PropertyController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'          => 'required|string|max:255',
-            'description'    => 'nullable|string',
-            'type'           => 'required|in:apartment,villa,land,chalet,commercial,parking',
-            'location'       => 'required|string|max:255',
-            'price'          => 'required|numeric|min:0',
-            'area_m2'        => 'nullable|numeric|min:0',
-            'rooms'          => 'nullable|integer|min:0',
-            'damage_status'  => 'required|in:intact,partial,renovated',
-            'has_water'      => 'boolean',
-            'has_electricity'=> 'boolean',
-            'is_ready'       => 'boolean',
+            'title'           => 'required|string|max:255',
+            'description'     => 'nullable|string',
+            'type'            => 'required|in:apartment,villa,land,chalet,commercial,parking',
+            'governorate_id'  => 'required|exists:governorates,id',
+            'city_id'         => 'required|exists:cities,id',
+            'neighborhood'    => 'nullable|string|max:255',
+            'street'          => 'nullable|string|max:255',
+            'price'           => 'required|numeric|min:0',
+            'area_m2'         => 'nullable|numeric|min:0',
+            'rooms'           => 'nullable|integer|min:0',
+            'damage_status'   => 'required|in:intact,partial,renovated',
+            'has_water'       => 'boolean',
+            'has_electricity' => 'boolean',
+            'is_ready'        => 'boolean',
         ]);
 
         $property = Property::create([
@@ -81,18 +84,24 @@ class PropertyController extends Controller
         }
 
         $data = $request->validate([
-            'title'          => 'sometimes|string|max:255',
-            'description'    => 'nullable|string',
-            'type'           => 'sometimes|in:apartment,villa,land,chalet,commercial,parking',
-            'location'       => 'sometimes|string|max:255',
-            'price'          => 'sometimes|numeric|min:0',
-            'area_m2'        => 'nullable|numeric|min:0',
-            'rooms'          => 'nullable|integer|min:0',
-            'damage_status'  => 'sometimes|in:intact,partial,renovated',
-            'has_water'      => 'boolean',
-            'has_electricity'=> 'boolean',
-            'is_ready'       => 'boolean',
+            'title'           => 'sometimes|string|max:255',
+            'description'     => 'nullable|string',
+            'type'            => 'sometimes|in:apartment,villa,land,chalet,commercial,parking',
+            'governorate_id'  => 'sometimes|exists:governorates,id',
+            'city_id'         => 'sometimes|exists:cities,id',
+            'neighborhood'    => 'nullable|string|max:255',
+            'street'          => 'nullable|string|max:255',
+            'price'           => 'sometimes|numeric|min:0',
+            'area_m2'         => 'nullable|numeric|min:0',
+            'rooms'           => 'nullable|integer|min:0',
+            'damage_status'   => 'sometimes|in:intact,partial,renovated',
+            'has_water'       => 'boolean',
+            'has_electricity' => 'boolean',
+            'is_ready'        => 'boolean',
         ]);
+
+        // Update essential fields to include location fields
+        $essentialFields = ['title', 'type', 'governorate_id', 'city_id', 'price', 'damage_status'];
 
         // Reset to pending if essential data is changed
         $essentialFields = ['title', 'type', 'location', 'price', 'damage_status'];

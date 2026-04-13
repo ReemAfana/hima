@@ -12,14 +12,20 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $query = Property::public()
-            ->with(['images', 'mainImage'])
+            ->with(['images', 'mainImage', 'governorate', 'city'])
             ->latest();
 
         if ($request->filled('type')) {
             $query->where('type', $request->type);
         }
-        if ($request->filled('location')) {
-            $query->where('location', 'like', '%' . $request->location . '%');
+        if ($request->filled('governorate_id')) {
+            $query->where('governorate_id', $request->governorate_id);
+        }
+        if ($request->filled('city_id')) {
+            $query->where('city_id', $request->city_id);
+        }
+        if ($request->filled('neighborhood')) {
+            $query->where('neighborhood', 'like', '%' . $request->neighborhood . '%');
         }
         if ($request->filled('min_price')) {
             $query->where('price', '>=', $request->min_price);

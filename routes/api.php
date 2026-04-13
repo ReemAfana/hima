@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ContractController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\Host\PropertyImageController;
 use App\Http\Controllers\Api\Tenant\FavoriteController;
 use App\Http\Controllers\Api\Admin\BookingController as AdminBookingController;
@@ -30,7 +31,9 @@ Route::get('/properties',              [PropertyController::class, 'index']);
 Route::get('/properties/{id}',         [PropertyController::class, 'show']);
 Route::get('/properties/{id}/reviews', [ReviewController::class, 'propertyReviews']);
 Route::get('/users/{id}/reviews',      [ReviewController::class, 'userReviews']);
-
+// Locations
+Route::get('/governorates',                    [LocationController::class, 'governorates']);
+Route::get('/governorates/{id}/cities',        [LocationController::class, 'cities']);
 // Email verification
 Route::get('/email/verify/{id}/{hash}', function () {
     return response()->json(['message' => 'Email verified.']);

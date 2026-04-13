@@ -11,21 +11,24 @@ class Property extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'host_id',
-        'title',
-        'description',
-        'type',
-        'location',
-        'price',
-        'area_m2',
-        'rooms',
-        'damage_status',
-        'has_water',
-        'has_electricity',
-        'is_ready',
-        'status',
-        'rejection_reason',
-        'availability',
+    'host_id',
+    'governorate_id',
+    'city_id',
+    'neighborhood',
+    'street',
+    'title',
+    'description',
+    'type',
+    'price',
+    'area_m2',
+    'rooms',
+    'damage_status',
+    'has_water',
+    'has_electricity',
+    'is_ready',
+    'status',
+    'rejection_reason',
+    'availability',
     ];
 
     protected $casts = [
@@ -48,6 +51,18 @@ class Property extends Model
         return $query->where('status', 'accepted')
                      ->where('availability', 'available');
     }
+
+    // Auto-generate full location string
+    public function getFullLocationAttribute(): string
+    {
+        $parts = [];
+        if ($this->governorate) $parts[] = $this->governorate->name;
+        if ($this->city)        $parts[] = $this->city->name;
+        if ($this->neighborhood) $parts[] = $this->neighborhood;
+        if ($this->street)      $parts[] = $this->street;
+        return implode(' - ', $parts);
+    }
+    
     // Property has many bookings
     public function bookings()
     {
@@ -63,5 +78,15 @@ class Property extends Model
     public function mainImage()
     {
         return $this->hasOne(PropertyImage::class)->where('is_main', true);
+    }
+
+    public function governorate()
+    {
+        return $this->belongsTo(Governorate::class);
+    }
+
+    public function city()
+    {
+        return $this->belongsTo(City::class);
     }
 }
