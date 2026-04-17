@@ -22,7 +22,6 @@ class AuthController extends Controller
             'password'              => 'required|string|min:8|confirmed',
             'role'                  => 'required|in:tenant,host',
             'phone'                 => 'nullable|string|max:20',
-            'address'               => 'nullable|string|max:255',
         ]);
 
         $user = User::create([
@@ -34,7 +33,6 @@ class AuthController extends Controller
             'email'       => $data['email'],
             'password'    => $data['password'], // auto-hashed by cast
             'phone'       => $data['phone'] ?? null,
-            'address'     => $data['address'] ?? null,
         ]);
 
         $user->assignRole($data['role']);

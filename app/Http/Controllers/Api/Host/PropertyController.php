@@ -27,7 +27,7 @@ class PropertyController extends Controller
             'type'            => 'required|in:apartment,villa,land,chalet,commercial,parking',
             'governorate_id'  => 'required|exists:governorates,id',
             'city_id'         => 'required|exists:cities,id',
-            'neighborhood'    => 'nullable|string|max:255',
+            'neighborhood_id' => 'nullable|exists:neighborhoods,id',
             'street'          => 'nullable|string|max:255',
             'price'           => 'required|numeric|min:0',
             'area_m2'         => 'nullable|numeric|min:0',
@@ -89,7 +89,7 @@ class PropertyController extends Controller
             'type'            => 'sometimes|in:apartment,villa,land,chalet,commercial,parking',
             'governorate_id'  => 'sometimes|exists:governorates,id',
             'city_id'         => 'sometimes|exists:cities,id',
-            'neighborhood'    => 'nullable|string|max:255',
+            'neighborhood_id' => 'nullable|exists:neighborhoods,id',
             'street'          => 'nullable|string|max:255',
             'price'           => 'sometimes|numeric|min:0',
             'area_m2'         => 'nullable|numeric|min:0',
@@ -101,7 +101,7 @@ class PropertyController extends Controller
         ]);
 
         // Update essential fields to include location fields
-        $essentialFields = ['title', 'type', 'governorate_id', 'city_id', 'price', 'damage_status'];
+        $essentialFields = ['title', 'type', 'governorate_id', 'city_id', 'neighborhood_id', 'price', 'damage_status'];
 
         // Reset to pending if essential data is changed
         $essentialFields = ['title', 'type', 'location', 'price', 'damage_status'];

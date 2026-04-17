@@ -5,24 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class City extends Model
+class Neighborhood extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'governorate_id', 
-        'name'
+        'city_id',
+        'name',
     ];
 
-    public function governorate()
+    public function city()
     {
-        return $this->belongsTo(Governorate::class);
+        return $this->belongsTo(City::class);
     }
 
-    public function neighborhoods()
-    {
-        return $this->hasMany(Neighborhood::class);
-    }
     public function properties()
     {
         return $this->hasMany(Property::class);

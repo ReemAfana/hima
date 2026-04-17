@@ -14,7 +14,7 @@ class Property extends Model
     'host_id',
     'governorate_id',
     'city_id',
-    'neighborhood',
+    'neighborhood_id',
     'street',
     'title',
     'description',
@@ -58,7 +58,7 @@ class Property extends Model
         $parts = [];
         if ($this->governorate) $parts[] = $this->governorate->name;
         if ($this->city)        $parts[] = $this->city->name;
-        if ($this->neighborhood) $parts[] = $this->neighborhood;
+        if ($this->neighborhood) $parts[] = $this->neighborhood->name;
         if ($this->street)      $parts[] = $this->street;
         return implode(' - ', $parts);
     }
@@ -88,5 +88,9 @@ class Property extends Model
     public function city()
     {
         return $this->belongsTo(City::class);
+    }
+    public function neighborhood()
+    {
+        return $this->belongsTo(Neighborhood::class);
     }
 }

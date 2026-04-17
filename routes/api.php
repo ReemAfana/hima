@@ -34,6 +34,7 @@ Route::get('/users/{id}/reviews',      [ReviewController::class, 'userReviews'])
 // Locations
 Route::get('/governorates',                    [LocationController::class, 'governorates']);
 Route::get('/governorates/{id}/cities',        [LocationController::class, 'cities']);
+Route::get('/cities/{id}/neighborhoods', [LocationController::class, 'neighborhoods']);
 // Email verification
 Route::get('/email/verify/{id}/{hash}', function () {
     return response()->json(['message' => 'Email verified.']);
@@ -53,7 +54,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Profile management
     Route::put('/profile',                 [ProfileController::class, 'update']);
-    Route::post('/profile/picture',        [ProfileController::class, 'uploadPicture']);
     Route::put('/profile/change-password', [ProfileController::class, 'changePassword']);
     Route::put('/profile/change-email',    [ProfileController::class, 'changeEmail']);
 

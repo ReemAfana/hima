@@ -16,7 +16,6 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'phone'   => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
         ]);
 
         $user->update($data);
@@ -24,30 +23,6 @@ class ProfileController extends Controller
         return response()->json([
             'message' => 'Profile updated successfully.',
             'user'    => $user,
-        ]);
-    }
-
-    // Upload profile picture
-    public function uploadPicture(Request $request)
-    {
-        $request->validate([
-            'profile_picture' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $user = $request->user();
-
-        // Delete old picture if exists
-        if ($user->profile_picture) {
-            Storage::disk('public')->delete($user->profile_picture);
-        }
-
-        $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-
-        $user->update(['profile_picture' => $path]);
-
-        return response()->json([
-            'message'         => 'Profile picture updated successfully.',
-            'profile_picture' => asset('storage/' . $path),
         ]);
     }
 
