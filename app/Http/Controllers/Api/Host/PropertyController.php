@@ -89,7 +89,7 @@ class PropertyController extends Controller
             'type'            => 'sometimes|in:apartment,villa,land,chalet,commercial,parking',
             'governorate_id'  => 'sometimes|exists:governorates,id',
             'city_id'         => 'sometimes|exists:cities,id',
-            'neighborhood_id' => 'nullable|exists:neighborhoods,id',
+            'neighborhood_id' => 'sometimes|nullable|exists:neighborhoods,id',
             'street'          => 'nullable|string|max:255',
             'price'           => 'sometimes|numeric|min:0',
             'area_m2'         => 'nullable|numeric|min:0',
@@ -103,8 +103,6 @@ class PropertyController extends Controller
         // Update essential fields to include location fields
         $essentialFields = ['title', 'type', 'governorate_id', 'city_id', 'neighborhood_id', 'price', 'damage_status'];
 
-        // Reset to pending if essential data is changed
-        $essentialFields = ['title', 'type', 'location', 'price', 'damage_status'];
         $hasEssentialChange = collect($essentialFields)->some(fn($f) => isset($data[$f]));
 
         if ($hasEssentialChange && $property->status === 'accepted') {
@@ -113,16 +111,19 @@ class PropertyController extends Controller
         }
 
         $property->update($data);
-        // Notify all admins
-        $admins = \App\Models\User::role('admin')->get();
-        foreach ($admins as $admin) {
-            NotificationService::send(
-                $admin->id,
-                'Property Modified',
-                'The property "' . $property->title . '" has been modified and may require your review.',
-                'property_modified',
-                $property->id
-            );
+        
+        // Notify admins only if essential data changed
+        if ($hasEssentialChange) {
+            $admins = \App\Models\User::role('admin')->get();
+            foreach ($admins as $admin) {
+                NotificationService::send(
+                    $admin->id,
+                    'Property Modified',
+                    'The property "' . $property->title . '" has been modified and may require your review.',
+                    'property_modified',
+                    $property->id
+                );
+            }
         }
         return response()->json([
             'message'  => 'Property updated successfully.',
