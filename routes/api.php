@@ -62,6 +62,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/contracts/{id}',          [ContractController::class, 'show']);
     Route::patch('/contracts/{id}/cancel', [ContractController::class, 'cancel']);
     Route::delete('/contracts/{id}',       [ContractController::class, 'destroy']);
+    Route::get('/contracts/{id}/pdf',          [ContractController::class, 'getPdfUrl']);
+    Route::get('/contracts/{id}/download',     [ContractController::class, 'downloadPdf']);
 
     // Reviews
     Route::post('/reviews', [ReviewController::class, 'store']);

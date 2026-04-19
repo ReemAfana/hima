@@ -19,6 +19,7 @@ class Contract extends Model
     'end_date',
     'price',
     'status',
+    'pdf_path',
 ];
 
     protected $casts = [

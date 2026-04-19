@@ -7,7 +7,7 @@ use App\Models\Booking;
 use App\Models\Contract;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
-
+use App\Services\ContractPdfService;
 class BookingController extends Controller
 {
     // List all booking requests for host's properties
@@ -88,7 +88,9 @@ class BookingController extends Controller
             'price'       => $finalPrice,
             'status'      => 'active',
         ]);
-
+        // Generate PDF
+        $pdfPath = ContractPdfService::generate($contract);
+        $contract->update(['pdf_path' => $pdfPath]);
         // Notify tenant - contract activated
         NotificationService::send(
             $booking->tenant_id,
