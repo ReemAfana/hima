@@ -23,6 +23,13 @@ class BookingController extends Controller
     // Submit a booking request
     public function store(Request $request)
     {
+        // تحقق من اكتمال البيانات
+        if (!$request->user()->isTenantReady()) {
+            return response()->json([
+                'message'  => 'Please complete your profile before booking.',
+                'redirect' => 'profile/complete',
+            ], 403);
+        }
         $data = $request->validate([
             'property_id' => 'required|exists:properties,id',
             'start_date'  => 'required|date|after_or_equal:today',

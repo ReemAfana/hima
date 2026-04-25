@@ -14,10 +14,10 @@ public function up(): void
     Schema::create('users', function (Blueprint $table) {
         $table->id();
         $table->string('first_name');
-        $table->string('second_name');
-        $table->string('third_name');
-        $table->string('last_name');
-        $table->string('national_id')->unique();
+        $table->string('second_name')->nullable();
+        $table->string('third_name')->nullable();
+        $table->string('last_name')->nullable();
+        $table->string('national_id')->unique()->nullable();
         $table->string('email')->unique();
         $table->timestamp('email_verified_at')->nullable();
         $table->string('password');

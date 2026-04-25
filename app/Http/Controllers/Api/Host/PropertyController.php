@@ -21,6 +21,13 @@ class PropertyController extends Controller
     // Submit a new property
     public function store(Request $request)
     {
+        // تحقق من اكتمال البيانات
+        if (!$request->user()->isHostReady()) {
+            return response()->json([
+                'message'  => 'Please complete your profile before listing a property.',
+                'redirect' => 'profile/complete',
+            ], 403);
+        }
         $data = $request->validate([
             'title'           => 'required|string|max:255',
             'description'     => 'nullable|string',

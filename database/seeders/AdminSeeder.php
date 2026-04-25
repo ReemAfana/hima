@@ -17,6 +17,7 @@ class AdminSeeder extends Seeder
             'national_id' => '111111111',
             'email'       => 'admin@hima.app',
             'password'    => bcrypt('password123'),
+            'phone'       => '0599000000',
         ]);
 
         $admin->markEmailAsVerified();

@@ -13,26 +13,16 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'first_name'  => 'required|string|max:50',
-            'second_name' => 'required|string|max:50',
-            'third_name'  => 'required|string|max:50',
-            'last_name'   => 'required|string|max:50',
-            'national_id' => 'required|string|unique:users,national_id',
-            'email'       => 'required|email|unique:users,email',
-            'password'    => 'required|string|min:8|confirmed',
-            'role'        => 'required|in:tenant,host',
-            'phone'       => 'nullable|string|max:20',
+            'first_name' => 'required|string|max:50',
+            'email'      => 'required|email|unique:users,email',
+            'password'   => 'required|string|min:8|confirmed',
+            'role'       => 'required|in:tenant,host',
         ]);
 
         $user = User::create([
-            'first_name'  => $data['first_name'],
-            'second_name' => $data['second_name'],
-            'third_name'  => $data['third_name'],
-            'last_name'   => $data['last_name'],
-            'national_id' => $data['national_id'],
-            'email'       => $data['email'],
-            'password'    => $data['password'],
-            'phone'       => $data['phone'] ?? null,
+            'first_name' => $data['first_name'],
+            'email'      => $data['email'],
+            'password'   => $data['password'],
         ]);
 
         $user->assignRole($data['role']);
@@ -64,9 +54,10 @@ class AuthController extends Controller
         $role  = $user->getRoleNames()->first();
 
         return response()->json([
-            'token' => $token,
-            'role'  => $role,
-            'user'  => $user,
+            'token'               => $token,
+            'role'                => $role,
+            'user'                => $user,
+            'is_profile_complete' => $user->isProfileComplete(),
         ]);
     }
 
@@ -78,9 +69,11 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
+        $user = $request->user();
         return response()->json([
-            'user' => $request->user(),
-            'role' => $request->user()->getRoleNames()->first(),
+            'user'                => $user,
+            'role'                => $user->getRoleNames()->first(),
+            'is_profile_complete' => $user->isProfileComplete(),
         ]);
     }
 }

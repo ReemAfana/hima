@@ -38,16 +38,33 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    // هل المستخدم أكمل بياناته؟
+    public function isProfileComplete(): bool
+    {
+        return !empty($this->second_name)
+            && !empty($this->third_name)
+            && !empty($this->last_name)
+            && !empty($this->national_id)
+            && !empty($this->phone);
+    }
+
+    public function isHostReady(): bool
+    {
+        return $this->isProfileComplete();
+    }
+
+    public function isTenantReady(): bool
+    {
+        return $this->isProfileComplete();
+    }
+
     public function sendPasswordResetNotification($token): void
     {
-        \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(function ($notifiable, $token) {
-            return url('/api/reset-password?token=' . $token . '&email=' . urlencode($notifiable->email));
-        });
-
+        \Illuminate\Auth\Notifications\ResetPassword::createUrlUsing(
+            function ($notifiable, $token) {
+                return url('/api/reset-password?token=' . $token . '&email=' . urlencode($notifiable->email));
+            }
+        );
         $this->notify(new \Illuminate\Auth\Notifications\ResetPassword($token));
-    }
-    public function favorites()
-    {
-        return $this->hasMany(Favorite::class, 'tenant_id');
     }
 }
