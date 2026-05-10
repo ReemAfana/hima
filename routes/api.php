@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController
 use App\Http\Controllers\Api\Tenant\BookingController as TenantBookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use App\Models\User;
+use Illuminate\Auth\Events\Verified;
 
 // =====================
 // Public routes
@@ -39,9 +42,42 @@ Route::get('/governorates/{id}/cities',      [LocationController::class, 'cities
 Route::get('/cities/{id}/neighborhoods',     [LocationController::class, 'neighborhoods']);
 
 // Email verification
-Route::get('/email/verify/{id}/{hash}', function () {
-    return response()->json(['message' => 'Email verified.']);
-})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+
+    $user = User::find($id);
+
+    if (!$user) {
+        return redirect(
+            'http://localhost/hima-frontend/login.html?error=user_not_found'
+        );
+    }
+
+    if (!URL::hasValidSignature(request())) {
+        return redirect(
+            'http://localhost/hima-frontend/login.html?error=invalid_link'
+        );
+    }
+
+    if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
+        return redirect(
+            'http://localhost/hima-frontend/login.html?error=invalid_hash'
+        );
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return redirect(
+            'http://localhost/hima-frontend/login.html?verified=already'
+        );
+    }
+
+    $user->markEmailAsVerified();
+    event(new Verified($user));
+
+    return redirect(
+        'http://localhost/hima-frontend/login.html?verified=success'
+    );
+
+})->middleware('signed')->name('verification.verify');
 
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();

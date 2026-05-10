@@ -3,22 +3,34 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        // Reset Password
+        ResetPassword::createUrlUsing(function ($user, string $token) {
+            return 'http://127.0.0.1:5500/reset-password.html'
+                . '?token=' . $token
+                . '&email=' . urlencode($user->email);
+        });
+
+        // Email Verification
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+            $verifyUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                [
+                    'id'   => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ]
+            );
+            return $verifyUrl;
+        });
     }
 }
