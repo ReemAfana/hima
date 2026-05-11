@@ -60,3 +60,21 @@ function authHeaders(){
           "Bearer " + localStorage.getItem("token")
     };
 }
+
+//LOGOUT 
+async function logout() {
+    const token = localStorage.getItem('token');
+
+    if (token) {
+        try {
+            await fetch(BASE_URL + '/logout', {
+                method: 'POST',
+                headers: authHeaders(),
+            });
+        } catch (e) {
+            
+        }
+    }
+    localStorage.clear();
+    window.location.href = 'login.html';
+}

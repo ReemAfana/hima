@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>حمى | لوحة المستأجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<div id="navbar"></div>
+
+<!-- Content -->
+<div style="
+    max-width: 800px;
+    margin: 3rem auto;
+    padding: 0 1rem;
+    font-family: Cairo, sans-serif;
+    text-align: center;
+">
+    <h1 style="color:#1B4332;margin-bottom:1rem;">
+        أهلاً <span id="user-name"></span> 👋
+    </h1>
+    <p style="color:#6B7280;margin-bottom:2rem;">
+        هذه لوحة تحكم المستأجر — قريباً ستكون هنا كل بياناتك
+    </p>
+
+    <div style="
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    ">
+        <div style="background:white;padding:1.5rem;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">📋</div>
+            <div style="font-weight:700;color:#1B4332;margin-top:0.5rem;">حجوزاتي</div>
+            <div style="color:#6B7280;font-size:0.85rem;">قريباً</div>
+        </div>
+        <div style="background:white;padding:1.5rem;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">📄</div>
+            <div style="font-weight:700;color:#1B4332;margin-top:0.5rem;">عقودي</div>
+            <div style="color:#6B7280;font-size:0.85rem;">قريباً</div>
+        </div>
+        <div style="background:white;padding:1.5rem;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+            <div style="font-size:2rem;">❤️</div>
+            <div style="font-weight:700;color:#1B4332;margin-top:0.5rem;">مفضلتي</div>
+            <div style="color:#6B7280;font-size:0.85rem;">قريباً</div>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/navbar.js"></script>
+<script>
+    // عرض اسم المستخدم
+    document.getElementById('user-name').textContent =
+        localStorage.getItem('name') || '';
+</script>
+</body>
+</html>

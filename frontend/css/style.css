@@ -5,12 +5,20 @@
     font-family: Arial, sans-serif;
 }
 
-body{
-    background:#eef7ee;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+body {
+    font-family: 'Cairo', sans-serif;
+    background: #F8F5F0;
+    color: #1A1A1A;
+    direction: rtl;
+    min-height: 100vh;
+}
+
+.center-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
 }
 
 .card{

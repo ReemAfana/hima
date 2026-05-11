@@ -6,176 +6,110 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+<div class="center-page">
+    <div class="card">
+        <div class="logo">حمى</div>
+        <h2>إنشاء حساب</h2>
 
-<div class="card">
-    <div class="logo">حمى</div>
-    <h2>إنشاء حساب</h2>
-
-    <!-- اختيار الدور -->
-    <div class="role-box">
-        <div class="role-card active" id="tenantCard">
-            🧑<br>
-            مستأجر
+        <div class="role-box">
+            <div class="role-card active" id="tenantCard">
+                🧑<br>مستأجر
+            </div>
+            <div class="role-card" id="hostCard">
+                🏠<br>صاحب عقار
+            </div>
         </div>
 
-        <div class="role-card" id="hostCard">
-            🏠<br>
-            صاحب عقار
+        <div id="msg"></div>
+
+        <input id="first_name" type="text" placeholder="الاسم الأول">
+        <input id="email" type="email" placeholder="البريد الإلكتروني">
+        <input id="password" type="password" placeholder="كلمة المرور">
+        <input id="confirm_password" type="password" placeholder="تأكيد كلمة المرور">
+
+        <button onclick="register()">إنشاء حساب</button>
+
+        <div class="center-text">
+            <a href="login.html">لديك حساب؟ سجّل دخولك</a>
         </div>
-    </div>
-
-    <!-- مكان الرسائل -->
-    <div id="msg"></div>
-
-    <!-- الحقول -->
-    <input
-        id="first_name"
-        type="text"
-        placeholder="الاسم الأول"
-    >
-
-    <input
-        id="email"
-        type="email"
-        placeholder="البريد الإلكتروني"
-    >
-
-    <input
-        id="password"
-        type="password"
-        placeholder="كلمة المرور"
-    >
-
-    <input
-        id="confirm_password"
-        type="password"
-        placeholder="تأكيد كلمة المرور"
-    >
-
-    <button onclick="register()">
-        إنشاء حساب
-    </button>
-
-    <div class="center-text">
-        <a href="login.html">
-            لديك حساب؟ سجّل دخولك
-        </a>
     </div>
 </div>
 
 <script src="js/api.js"></script>
-
 <script>
 let role = "tenant";
 
-/* اختيار مستأجر */
 document.getElementById("tenantCard").onclick = function () {
     role = "tenant";
-
-    document
-        .getElementById("tenantCard")
-        .classList.add("active");
-
-    document
-        .getElementById("hostCard")
-        .classList.remove("active");
+    document.getElementById("tenantCard").classList.add("active");
+    document.getElementById("hostCard").classList.remove("active");
 };
 
-/* اختيار صاحب عقار */
 document.getElementById("hostCard").onclick = function () {
     role = "host";
-
-    document
-        .getElementById("hostCard")
-        .classList.add("active");
-
-    document
-        .getElementById("tenantCard")
-        .classList.remove("active");
+    document.getElementById("hostCard").classList.add("active");
+    document.getElementById("tenantCard").classList.remove("active");
 };
 
-
-/* التسجيل */
 async function register() {
+    const first_name      = document.getElementById("first_name").value.trim();
+    const email           = document.getElementById("email").value.trim();
+    const password        = document.getElementById("password").value;
+    const confirm_password = document.getElementById("confirm_password").value;
 
-    const first_name =
-        document.getElementById("first_name").value.trim();
-
-    const email =
-        document.getElementById("email").value.trim();
-
-    const password =
-        document.getElementById("password").value;
-
-    const confirm_password =
-        document.getElementById("confirm_password").value;
-
-    /* تحقق بسيط */
-    if (
-        !first_name ||
-        !email ||
-        !password ||
-        !confirm_password
-    ) {
+    if (!first_name || !email || !password || !confirm_password) {
         document.getElementById("msg").innerHTML =
             '<div class="error">يرجى تعبئة جميع الحقول</div>';
         return;
     }
 
-    const body = {
-        first_name: first_name,
-        email: email,
-        password: password,
-        password_confirmation: confirm_password,
-        role: role
-    };
+    if (password.length < 8) {
+        document.getElementById("msg").innerHTML =
+            '<div class="error">كلمة المرور يجب أن تكون 8 أحرف على الأقل</div>';
+        return;
+    }
+
+    if (password !== confirm_password) {
+        document.getElementById("msg").innerHTML =
+            '<div class="error">كلمتا المرور غير متطابقتين</div>';
+        return;
+    }
 
     try {
-        const response = await fetch(
-            BASE_URL + "/register",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(body)
-            }
-        );
+        const response = await fetch(BASE_URL + "/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                first_name,
+                email,
+                password,
+                password_confirmation: confirm_password,
+                role
+            })
+        });
 
         const data = await response.json();
 
-        /* نجاح */
         if (response.ok) {
             document.getElementById("msg").innerHTML =
-                '<div class="success">تحقق من بريدك الإلكتروني لتفعيل حسابك</div>';
-
-            setTimeout(function () {
-                window.location.href = "login.html";
-            }, 2000);
-
+                '<div class="success">✅ تحقق من بريدك الإلكتروني لتفعيل حسابك</div>';
+            setTimeout(() => window.location.href = "login.html", 2000);
             return;
         }
 
-        /* أخطاء validation */
         if (data.errors) {
             let errors = "";
-
-            Object.values(data.errors).forEach(function (arr) {
-                errors += arr[0] + "<br>";
-            });
-
+            Object.values(data.errors).forEach(arr => errors += arr[0] + "<br>");
             document.getElementById("msg").innerHTML =
-                '<div class="error">' +
-                errors +
-                '</div>';
-
+                '<div class="error">' + errors + '</div>';
             return;
         }
 
-        /* خطأ عام */
         document.getElementById("msg").innerHTML =
-            '<div class="error">حدث خطأ أثناء التسجيل</div>';
+            '<div class="error">' + (data.message || 'حدث خطأ') + '</div>';
 
     } catch (error) {
         document.getElementById("msg").innerHTML =
@@ -183,6 +117,5 @@ async function register() {
     }
 }
 </script>
-
 </body>
 </html>

@@ -5,31 +5,31 @@
 <title>Login</title>
 </head>
 <body>
+<div class="center-page">
+    <div class="card">
+        <div class="logo">حمى</div>
+        <h2>أهلاً بعودتك 👋</h2>
 
-<div class="card">
-    <div class="logo">حمى</div>
-    <h2>أهلاً بعودتك 👋</h2>
+        <div id="msg"></div>
 
-    <div id="msg"></div>
+        <input id="email" placeholder="البريد الإلكتروني">
+        <input id="password" type="password" placeholder="كلمة المرور">
 
-    <input id="email" placeholder="البريد الإلكتروني">
-    <input id="password" type="password" placeholder="كلمة المرور">
+        <button onclick="login()">تسجيل الدخول</button>
 
-    <button onclick="login()">تسجيل الدخول</button>
+        <div class="center-text">
+            <a href="forgot-password.html">
+                نسيت كلمة المرور؟
+            </a>
+        </div>
 
-    <div class="center-text">
-        <a href="forgot-password.html">
-            نسيت كلمة المرور؟
-        </a>
-    </div>
-
-    <div class="center-text">
-        <a href="register.html">
-            ليس لديك حساب؟ سجّل الآن
-        </a>
+        <div class="center-text">
+            <a href="register.html">
+                ليس لديك حساب؟ سجّل الآن
+            </a>
+        </div>
     </div>
 </div>
-
 <script src="js/api.js"></script>
 
 <script>
