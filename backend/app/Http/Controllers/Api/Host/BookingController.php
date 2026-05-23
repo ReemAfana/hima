@@ -16,7 +16,7 @@ class BookingController extends Controller
         $bookings = Booking::whereHas('property', function ($query) use ($request) {
                 $query->where('host_id', $request->user()->id);
             })
-            ->with('property:id,title,location', 'tenant:id,first_name,last_name,email,phone')
+            ->with('property:id,title,governorate_id,city_id,neighborhood_id,street', 'tenant:id,first_name,last_name,email,phone')
             ->latest()
             ->get();
 

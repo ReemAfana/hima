@@ -13,7 +13,7 @@ class BookingController extends Controller
     public function index(Request $request)
     {
         $bookings = Booking::where('tenant_id', $request->user()->id)
-            ->with('property:id,title,location,type,price')
+            ->with('property:id,title,type,price,governorate_id,city_id,neighborhood_id,street')
             ->latest()
             ->get();
 
@@ -83,7 +83,7 @@ class BookingController extends Controller
     public function show(Request $request, $id)
     {
         $booking = Booking::where('tenant_id', $request->user()->id)
-            ->with('property:id,title,location,type,price')
+            ->with('property:id,title,type,price,governorate_id,city_id,neighborhood_id,street')
             ->findOrFail($id);
 
         return response()->json($booking);

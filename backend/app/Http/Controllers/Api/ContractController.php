@@ -14,7 +14,7 @@ class ContractController extends Controller
     {
         $user  = $request->user();
         $role  = $user->getRoleNames()->first();
-        $query = Contract::with('property:id,title,location,type');
+        $query = Contract::with('property:id,title,type,governorate_id,city_id,neighborhood_id,street');
 
         if ($role === 'tenant') {
             $query->where('tenant_id', $user->id)
@@ -38,7 +38,7 @@ class ContractController extends Controller
         $user     = $request->user();
         $role     = $user->getRoleNames()->first();
         $contract = Contract::with([
-            'property:id,title,location,type',
+            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
             'tenant:id,first_name,last_name,phone',
             'host:id,first_name,last_name,phone',
             'booking:id,start_date,end_date,status',
