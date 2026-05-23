@@ -13,7 +13,7 @@ class BookingController extends Controller
     public function index()
     {
         $bookings = Booking::with([
-            'property:id,title,location,type',
+            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
             'tenant:id,first_name',  // only first name, no PII
         ])
         ->latest()
@@ -63,7 +63,7 @@ class BookingController extends Controller
     public function show($id)
     {
         $booking = Booking::with([
-            'property:id,title,location,type',
+            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
             'tenant:id,first_name',
         ])->findOrFail($id);
 

@@ -13,7 +13,7 @@ class FavoriteController extends Controller
     public function index(Request $request)
     {
         $favorites = Favorite::where('tenant_id', $request->user()->id)
-            ->with('property:id,title,location,type,price,availability,status')
+            ->with('property:id,title,type,price,availability,status,governorate_id,city_id,neighborhood_id,street')
             ->latest()
             ->get();
 
