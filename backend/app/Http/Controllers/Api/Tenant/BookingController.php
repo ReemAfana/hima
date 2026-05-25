@@ -102,11 +102,27 @@ class BookingController extends Controller
         }
 
         $data = $request->validate([
-            'start_date' => 'sometimes|date|after_or_equal:today',
-            'end_date'   => 'sometimes|date|after:start_date',
-        ]);
+    'start_date' => 'sometimes|date|after_or_equal:today',
+    'end_date'   => 'sometimes|date|after_or_equal:today',
+]);
 
-        $booking->update($data);
+// Use existing values if not provided in request
+$startDate = $data['start_date'] ?? $booking->start_date->format('Y-m-d');
+$endDate   = $data['end_date']   ?? $booking->end_date->format('Y-m-d');
+
+// Validate that end_date is always after start_date
+if ($endDate <= $startDate) {
+    return response()->json([
+        'message' => 'The end date must be a date after the start date.',
+        'errors'  => [
+            'end_date' => ['The end date must be a date after the start date.'],
+        ],
+    ], 422);
+}
+
+$booking->update($data);
+
+
         // Notify host
         $property = $booking->property;
         NotificationService::send(
