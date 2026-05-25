@@ -112,12 +112,26 @@ class PropertyController extends Controller
 
         $hasEssentialChange = collect($essentialFields)->some(fn($f) => isset($data[$f]));
 
-        if ($hasEssentialChange && $property->status === 'accepted') {
-            $data['status']       = 'pending';
-            $data['availability'] = 'not_available';
-        }
+        if ($hasEssentialChange && in_array($property->status, ['accepted', 'rejected'])) {
+            $data['status']           = 'pending';
+            $data['availability']     = 'not_available';
+            $data['rejection_reason'] = null;
 
-        $property->update($data);
+            // Cancel all pending bookings and notify tenants
+            $pendingBookings = $property->bookings()->where('status', 'pending')->get();
+            foreach ($pendingBookings as $booking) {
+                $booking->update(['status' => 'cancelled']);
+                 NotificationService::send(
+                $booking->tenant_id,
+                'Booking Cancelled',
+                'Your booking request for "' . $property->title . '" has been cancelled because the property details were updated and is now under review.',
+                'booking_cancelled',
+                  $booking->id
+        );
+    }
+}
+
+$property->update($data);
         
         // Notify admins only if essential data changed
         if ($hasEssentialChange) {
