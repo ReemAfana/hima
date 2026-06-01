@@ -164,7 +164,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::post('/bookings',        [TenantBookingController::class, 'store']);
         Route::get('/bookings/{id}',    [TenantBookingController::class, 'show']);
         Route::put('/bookings/{id}',    [TenantBookingController::class, 'update']);
-        Route::delete('/bookings/{id}', [TenantBookingController::class, 'destroy']);
+        Route::delete('/bookings/{id}', [TenantBookingController::class, 'cancel']); 
 
         // Favorites
         Route::get('/favorites',                 [FavoriteController::class, 'index']);
