@@ -78,6 +78,8 @@ class ProfileController extends Controller
 
         $user->update(['password' => Hash::make($request->password)]);
 
+        $user->tokens()->delete();
+
         return response()->json(['message' => 'Password changed successfully.']);
     }
 
@@ -103,6 +105,8 @@ class ProfileController extends Controller
         ]);
 
         $user->sendEmailVerificationNotification();
+
+        $user->tokens()->delete();
 
         return response()->json([
             'message' => 'Email updated. Please verify your new email.',

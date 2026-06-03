@@ -50,6 +50,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'Please verify your email first.'], 403);
         }
 
+        // حذف جميع التوكنات القديمة قبل إنشاء توكن جديد
+        $user->tokens()->delete();
         $token = $user->createToken('auth_token')->plainTextToken;
         $role  = $user->getRoleNames()->first();
 
