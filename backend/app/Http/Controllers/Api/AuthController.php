@@ -50,7 +50,13 @@ class AuthController extends Controller
             return response()->json(['message' => 'Please verify your email first.'], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $user->tokens()->delete();
+        $token = $user->createToken(
+         'auth_token',
+          ['*'],
+          now()->addDays(30)
+          )->plainTextToken;
+        
         $role  = $user->getRoleNames()->first();
 
         return response()->json([
@@ -63,7 +69,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+       
+        $request->user()->tokens()->delete();
         return response()->json(['message' => 'Logged out successfully.']);
     }
 
