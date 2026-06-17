@@ -24,7 +24,7 @@ class BookingController extends Controller
                 'status'      => $booking->status,
                 'start_date'  => $booking->start_date,
                 'end_date'    => $booking->end_date,
-                'price'       => $booking->price,
+               
                 'created_at'  => $booking->created_at,
                 'property'    => $booking->property,
                 'tenant'      => [
@@ -72,7 +72,7 @@ class BookingController extends Controller
             'status'     => $booking->status,
             'start_date' => $booking->start_date,
             'end_date'   => $booking->end_date,
-            'price'      => $booking->price,
+           
             'created_at' => $booking->created_at,
             'property'   => $booking->property,
             'tenant'     => [
