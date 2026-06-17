@@ -28,7 +28,9 @@ class ContractController extends Controller
         }
 
         $contracts = $query->latest()->get();
-
+        if ($role === 'admin') {
+         $contracts->makeHidden(['price']);
+        }
         return response()->json($contracts);
     }
 
@@ -51,7 +53,9 @@ class ContractController extends Controller
         if ($role === 'host' && $contract->host_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
-
+        if ($role === 'admin') {
+        $contract->makeHidden(['price']);
+        }
         return response()->json($contract);
     }
 
