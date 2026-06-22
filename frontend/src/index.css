@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 37 36% 96%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 136 52% 24%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 38 31% 93%;
+    --secondary-foreground: 44 9% 40%;
+    --muted: 38 20% 90%;
+    --muted-foreground: 44 9% 50%;
+    --accent: 120 39% 95%;
+    --accent-foreground: 136 52% 24%;
+    --destructive: 6 63% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 36 31% 90%;
+    --input: 0 0% 80%;
+    --ring: 133 51% 37%;
+    --radius: 0.625rem;
+    --hima-canvas: #e4ded2;
+    --hima-primary-action: #2f8f46;
+    --hima-primary-hover: #256d37;
+    --hima-warning: #b8801f;
+    --hima-warning-soft: #fbf2dc;
+    --hima-danger-soft: #fbe9e6;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    direction: rtl;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-family: Cairo, Arial, sans-serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: Cairo, Arial, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    height: 11px;
+    width: 11px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #c9c2b5;
+    border-radius: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #ddd6c9;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen bg-background;
+  }
+
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .surface {
+    @apply rounded-lg border bg-card text-card-foreground shadow-hima;
+  }
+
+  .dashboard-grid {
+    @apply grid gap-4 sm:grid-cols-2 xl:grid-cols-4;
+  }
+
+  .form-grid {
+    @apply grid gap-4 md:grid-cols-2;
+  }
+
+  .section-title {
+    @apply text-lg font-extrabold text-primary;
+  }
+
+  .muted-label {
+    @apply text-sm font-semibold text-muted-foreground;
+  }
+
+  .hima-gradient {
+    background: linear-gradient(155deg, #9db98f, #6d8f63);
+  }
+}
