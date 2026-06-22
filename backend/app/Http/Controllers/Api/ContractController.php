@@ -18,18 +18,18 @@ class ContractController extends Controller
 
         if ($role === 'tenant') {
             $query->where('tenant_id', $user->id)
-                  ->with('host:id,first_name,last_name,phone');
+                ->with('host:id,first_name,last_name,phone');
         } elseif ($role === 'host') {
             $query->where('host_id', $user->id)
-                  ->with('tenant:id,first_name,last_name,phone');
+                ->with('tenant:id,first_name,last_name,phone');
         } elseif ($role === 'admin') {
-            $query->with('tenant:id,first_name,last_name')
-                  ->with('host:id,first_name,last_name');
+            $query->with('tenant:id,first_name')
+                ->with('host:id,first_name,last_name');
         }
 
         $contracts = $query->latest()->get();
         if ($role === 'admin') {
-         $contracts->makeHidden(['price']);
+            $contracts->makeHidden(['price']);
         }
         return response()->json($contracts);
     }
@@ -39,23 +39,35 @@ class ContractController extends Controller
     {
         $user     = $request->user();
         $role     = $user->getRoleNames()->first();
-        $contract = Contract::with([
-            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
-            'tenant:id,first_name,last_name,phone',
-            'host:id,first_name,last_name,phone',
-            'booking:id,start_date,end_date,status',
-        ])->findOrFail($id);
+        $contract = Contract::findOrFail($id);
 
-        // Access control
+        // Access control first ✅
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
+
+        // Load data based on role
+        $contract->load([
+            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
+            'booking:id,start_date,end_date,status',
+        ]);
+
         if ($role === 'admin') {
-        $contract->makeHidden(['price']);
+            $contract->load([
+                'tenant:id,first_name',
+                'host:id,first_name,last_name,phone',
+            ]);
+            $contract->makeHidden(['price']);
+        } else {
+            $contract->load([
+                'tenant:id,first_name,last_name,phone',
+                'host:id,first_name,last_name,phone',
+            ]);
         }
+
         return response()->json($contract);
     }
 
@@ -128,40 +140,48 @@ class ContractController extends Controller
         ]);
     }
     // Download contract PDF
-public function downloadPdf(Request $request, $id)
-{
-    $user     = $request->user();
-    $role     = $user->getRoleNames()->first();
-    $contract = Contract::findOrFail($id);
+    public function downloadPdf(Request $request, $id)
+    {
+        $user     = $request->user();
+        $role     = $user->getRoleNames()->first();
+        $contract = Contract::findOrFail($id);
 
-    // Access control
-    if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-        return response()->json(['message' => 'Unauthorized.'], 403);
+        // Access control
+
+        if ($role === 'admin') {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+        if ($role === 'host' && $contract->host_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        if (!$contract->pdf_path) {
+            return response()->json(['message' => 'PDF not generated yet.'], 404);
+        }
+
+        $fullPath = storage_path('app/public/' . $contract->pdf_path);
+
+        if (!file_exists($fullPath)) {
+            return response()->json(['message' => 'PDF file not found.'], 404);
+        }
+
+        return response()->download($fullPath, 'contract_' . $contract->id . '.pdf');
     }
-    if ($role === 'host' && $contract->host_id !== $user->id) {
-        return response()->json(['message' => 'Unauthorized.'], 403);
-    }
 
-    if (!$contract->pdf_path) {
-        return response()->json(['message' => 'PDF not generated yet.'], 404);
-    }
-
-    $fullPath = storage_path('app/public/' . $contract->pdf_path);
-
-    if (!file_exists($fullPath)) {
-        return response()->json(['message' => 'PDF file not found.'], 404);
-    }
-
-    return response()->download($fullPath, 'contract_' . $contract->id . '.pdf');
-}
-
-// Get PDF URL
+    // Get PDF URL
     public function getPdfUrl(Request $request, $id)
     {
         $user     = $request->user();
         $role     = $user->getRoleNames()->first();
         $contract = Contract::findOrFail($id);
 
+        // Access control
+        if ($role === 'admin') {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
@@ -177,7 +197,7 @@ public function downloadPdf(Request $request, $id)
             'pdf_url' => asset('storage/' . $contract->pdf_path),
         ]);
     }
-    
+
     // Admin archives old inactive contracts
     public function destroy(Request $request, $id)
     {
