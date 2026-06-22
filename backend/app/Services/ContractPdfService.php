@@ -145,7 +145,6 @@ class ContractPdfService
                         <td>' . $contract->tenant->first_name . ' ' . $contract->tenant->second_name . ' ' . $contract->tenant->third_name . ' ' . $contract->tenant->last_name . '</td>
                     </tr>
                     <tr><td class="label">رقم الهوية:</td><td>' . $contract->tenant->national_id . '</td></tr>
-                    <tr><td class="label">البريد الإلكتروني:</td><td>' . $contract->tenant->email . '</td></tr>
                     <tr><td class="label">رقم الهاتف:</td><td>' . ($contract->tenant->phone ?? 'غير محدد') . '</td></tr>
                 </table>
             </div>
@@ -160,7 +159,6 @@ class ContractPdfService
                         <td>' . $contract->host->first_name . ' ' . $contract->host->second_name . ' ' . $contract->host->third_name . ' ' . $contract->host->last_name . '</td>
                     </tr>
                     <tr><td class="label">رقم الهوية:</td><td>' . $contract->host->national_id . '</td></tr>
-                    <tr><td class="label">البريد الإلكتروني:</td><td>' . $contract->host->email . '</td></tr>
                     <tr><td class="label">رقم الهاتف:</td><td>' . ($contract->host->phone ?? 'غير محدد') . '</td></tr>
                 </table>
             </div>

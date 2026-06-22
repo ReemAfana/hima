@@ -8,14 +8,15 @@ use App\Models\Contract;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use App\Services\ContractPdfService;
+
 class BookingController extends Controller
 {
     // List all booking requests for host's properties
     public function index(Request $request)
     {
         $bookings = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->with('property:id,title,governorate_id,city_id,neighborhood_id,street', 'tenant:id,first_name,last_name,email,phone')
             ->latest()
             ->get();
@@ -27,8 +28,8 @@ class BookingController extends Controller
     public function accept(Request $request, $id)
     {
         $booking = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->findOrFail($id);
 
         if ($booking->status !== 'pending') {
@@ -119,10 +120,36 @@ class BookingController extends Controller
         );
 
         return response()->json([
-            'message'      => 'Booking accepted and contract created.',
-            'booking'      => $booking,
-            'contract'     => $contract,
-            'final_price'  => $finalPrice,
+            'message'     => 'Booking accepted and contract created.',
+            'booking'     => $booking,
+            'contract'    => [
+                'id'         => $contract->id,
+                'booking_id' => $contract->booking_id,
+                'start_date' => $contract->start_date,
+                'end_date'   => $contract->end_date,
+                'price'      => $contract->price,
+                'status'     => $contract->status,
+                'pdf_path'   => $contract->pdf_path,
+                'tenant' => [
+                    'id'          => $contract->tenant->id,
+                    'first_name'  => $contract->tenant->first_name,
+                    'second_name' => $contract->tenant->second_name,
+                    'third_name'  => $contract->tenant->third_name,
+                    'last_name'   => $contract->tenant->last_name,
+                    'national_id' => $contract->tenant->national_id,
+                    'phone'       => $contract->tenant->phone,
+                ],
+                'host' => [
+                    'id'          => $contract->host->id,
+                    'first_name'  => $contract->host->first_name,
+                    'second_name' => $contract->host->second_name,
+                    'third_name'  => $contract->host->third_name,
+                    'last_name'   => $contract->host->last_name,
+                    'national_id' => $contract->host->national_id,
+                    'phone'       => $contract->host->phone,
+                ],
+            ],
+            'final_price' => $finalPrice,
         ]);
     }
 
@@ -130,8 +157,8 @@ class BookingController extends Controller
     public function reject(Request $request, $id)
     {
         $booking = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->findOrFail($id);
 
         if ($booking->status !== 'pending') {
