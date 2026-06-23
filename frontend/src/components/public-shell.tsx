@@ -116,6 +116,8 @@ function SideMenu({ open, onClose, mode }: { open: boolean; onClose: () => void;
             <>
               <MenuItem icon={User} label="تسجيل الدخول / إنشاء حساب" onClick={() => go("/login")} />
               <MenuItem icon={UserPlus} label="كن مضيفاً" onClick={() => go("/become-host")} />
+              <MenuItem icon={User} label="معاينة وضع المستأجر" onClick={() => go("/tenant-preview")} />
+              <MenuItem icon={Building2} label="معاينة وضع المضيف" onClick={() => go("/host-preview")} />
             </>
           )}
           {!isHostPreview && !isTenantPreview && token && role === "host" && <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/dashboard/host")} />}

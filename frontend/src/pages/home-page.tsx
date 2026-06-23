@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, Home as HomeIcon, MapPin, Search, Star } from "lucide-react";
+import { Building2, DollarSign, Home as HomeIcon, MapPin, Search, Star, User } from "lucide-react";
 import { propertiesApi } from "@/api/properties";
 import { PublicShell } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,16 @@ export function HomePage({ tenantPreview = false }: { tenantPreview?: boolean })
             <h1 className="text-3xl font-black">العقارات المتاحة</h1>
             <p className="mt-1 font-bold text-white/80">تصفح العقارات مرتبة حسب التقييم والجاهزية</p>
           </div>
+          {!tenantPreview && (
+            <div className="mb-6 flex flex-wrap gap-3">
+              <Button asChild className="bg-white text-primary hover:bg-white/90">
+                <Link to="/tenant-preview"><User className="h-4 w-4" />معاينة وضع المستأجر</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-white bg-transparent text-white hover:bg-white/10 hover:text-white">
+                <Link to="/host-preview"><Building2 className="h-4 w-4" />معاينة وضع المضيف</Link>
+              </Button>
+            </div>
+          )}
           {properties.isLoading ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-80 rounded-lg bg-white/25 animate-pulse" />)}
