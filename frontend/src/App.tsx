@@ -7,12 +7,20 @@ import { BookingPage } from "@/pages/booking-page";
 import { AdminDashboardPage, HostDashboardPage, TenantDashboardPage } from "@/pages/dashboard-pages";
 import { HomePage } from "@/pages/home-page";
 import { HostPreviewPage } from "@/pages/host-preview-page";
+import {
+  HostPreviewContractDetailsPage,
+  HostPreviewContractsPage,
+  HostPreviewNotificationsPage,
+  HostPreviewRequestDetailsPage,
+  HostPreviewRequestsPage,
+} from "@/pages/host-preview-workflow-pages";
 import { HostPropertiesPage } from "@/pages/host-properties-page";
 import { MessagesPage } from "@/pages/messages-page";
 import { PoliciesPage } from "@/pages/policies-page";
 import { PropertyDetailsPage } from "@/pages/property-details-page";
 import { PropertyFormPage } from "@/pages/property-form-page";
 import { SearchPage } from "@/pages/search-page";
+import { TenantContractsPage, TenantNotificationsPage, TenantRequestsPage } from "@/pages/tenant-workflow-pages";
 import { legacyPath } from "@/lib/utils";
 import { dashboardForRole, useAuthStore } from "@/stores/auth-store";
 import type { Role } from "@/types/api";
@@ -33,14 +41,33 @@ export const routes = [
     children: [{ path: "/complete-profile", element: <CompleteProfilePage /> }],
   },
   { path: "/", element: <HomePage /> },
+  { path: "/tenant-preview", element: <HomePage tenantPreview /> },
+  { path: "/tenant-preview/properties/:id", element: <PropertyDetailsPage tenantPreview /> },
+  { path: "/tenant-preview/properties/:id/book", element: <BookingPage /> },
   { path: "/search", element: <SearchPage /> },
   { path: "/host-preview", element: <HostPreviewPage /> },
+  { path: "/host-preview/properties/new", element: <PropertyFormPage previewMode /> },
+  { path: "/host-preview/properties/:id", element: <PropertyDetailsPage ownerMode /> },
+  { path: "/host-preview/properties/:id/edit", element: <PropertyFormPage previewMode /> },
+  { path: "/host-preview/requests", element: <HostPreviewRequestsPage /> },
+  { path: "/host-preview/requests/:id", element: <HostPreviewRequestDetailsPage /> },
+  { path: "/host-preview/notifications", element: <HostPreviewNotificationsPage /> },
+  { path: "/host-preview/contracts", element: <HostPreviewContractsPage /> },
+  { path: "/host-preview/contracts/:id", element: <HostPreviewContractDetailsPage /> },
   { path: "/properties", element: <SearchPage /> },
   { path: "/properties/:id", element: <PropertyDetailsPage /> },
   { path: "/policies", element: <PoliciesPage /> },
+  { path: "/tenant-preview/requests", element: <TenantRequestsPage /> },
+  { path: "/tenant-preview/contracts", element: <TenantContractsPage /> },
+  { path: "/tenant-preview/notifications", element: <TenantNotificationsPage /> },
   {
     element: <ProtectedRoute roles={["tenant"]} />,
-    children: [{ path: "/properties/:id/book", element: <BookingPage /> }],
+    children: [
+      { path: "/properties/:id/book", element: <BookingPage /> },
+      { path: "/tenant/requests", element: <TenantRequestsPage /> },
+      { path: "/tenant/contracts", element: <TenantContractsPage /> },
+      { path: "/tenant/notifications", element: <TenantNotificationsPage /> },
+    ],
   },
   {
     element: <ProtectedRoute roles={["admin", "host", "tenant"]} />,

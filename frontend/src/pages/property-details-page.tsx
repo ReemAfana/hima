@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Calendar, DollarSign, Home, MessageCircle, Star, User } from "lucide-react";
+import { AlertTriangle, Calendar, DollarSign, Edit, Home, MessageCircle, Star, User } from "lucide-react";
 import { propertiesApi } from "@/api/properties";
 import { PublicShell } from "@/components/public-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { damageLabels } from "@/lib/labels";
+import { getHostPreviewRequests, tenantWhatsappLink } from "@/lib/host-preview-data";
 import { getMockProperty } from "@/lib/mock-data";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -22,23 +23,23 @@ import {
 } from "@/lib/view-models";
 import { useAuthStore } from "@/stores/auth-store";
 
-export function PropertyDetailsPage() {
+export function PropertyDetailsPage({ ownerMode = false, tenantPreview = false }: { ownerMode?: boolean; tenantPreview?: boolean }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { token, isProfileComplete, setRedirectAfterComplete } = useAuthStore();
+  const { token, role, isProfileComplete, setRedirectAfterComplete } = useAuthStore();
   const [imageIndex, setImageIndex] = useState(0);
-  const property = useQuery({ queryKey: ["properties", id], queryFn: () => propertiesApi.show(id!), enabled: Boolean(id) });
-  const reviews = useQuery({ queryKey: ["properties", id, "reviews"], queryFn: () => propertiesApi.reviews(id!), enabled: Boolean(id) });
-  const whatsapp = useQuery({ queryKey: ["properties", id, "whatsapp"], queryFn: () => propertiesApi.whatsapp(id!), enabled: Boolean(id), retry: false });
+  const property = useQuery({ queryKey: ["properties", id], queryFn: () => propertiesApi.show(id!), enabled: Boolean(id) && !ownerMode });
+  const reviews = useQuery({ queryKey: ["properties", id, "reviews"], queryFn: () => propertiesApi.reviews(id!), enabled: Boolean(id) && !ownerMode });
+  const whatsapp = useQuery({ queryKey: ["properties", id, "whatsapp"], queryFn: () => propertiesApi.whatsapp(id!), enabled: Boolean(id) && !ownerMode, retry: false });
 
   const propertyData = property.data ?? getMockProperty(id);
 
   if (property.isLoading && !propertyData) {
-    return <PublicShell><div className="page-container"><div className="h-96 rounded-lg bg-muted animate-pulse" /></div></PublicShell>;
+    return <PublicShell mode={ownerMode ? "host-preview" : tenantPreview ? "tenant-preview" : "public"}><div className="page-container"><div className="h-96 rounded-lg bg-muted animate-pulse" /></div></PublicShell>;
   }
 
   if (!propertyData) {
-    return <PublicShell><div className="page-container">تعذر تحميل العقار</div></PublicShell>;
+    return <PublicShell mode={ownerMode ? "host-preview" : tenantPreview ? "tenant-preview" : "public"}><div className="page-container">تعذر تحميل العقار</div></PublicShell>;
   }
 
   const images = propertyImages(propertyData);
@@ -46,7 +47,15 @@ export function PropertyDetailsPage() {
   const conditions = propertyConditionNotes(propertyData);
 
   function handleBookNow() {
+    if (tenantPreview) {
+      navigate(`/tenant-preview/properties/${id}/book`);
+      return;
+    }
     if (!token) {
+      navigate("/login");
+      return;
+    }
+    if (role !== "tenant") {
       navigate("/login");
       return;
     }
@@ -59,7 +68,7 @@ export function PropertyDetailsPage() {
   }
 
   return (
-    <PublicShell>
+    <PublicShell mode={ownerMode ? "host-preview" : tenantPreview ? "tenant-preview" : "public"}>
       <div className="page-container grid gap-6 lg:grid-cols-[1fr_340px]">
         <section className="grid gap-6">
           <Card className="overflow-hidden">
@@ -133,7 +142,9 @@ export function PropertyDetailsPage() {
                         <div className="font-extrabold text-foreground">{condition.title}</div>
                         <Badge variant={condition.severity === "medium" ? "warning" : "success"}>{condition.severity === "medium" ? "متوسط" : "منخفض"}</Badge>
                       </div>
-                      <p className="mt-1 text-sm font-semibold text-muted-foreground">{condition.description}</p>
+                      <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                        {ownerMode && condition.severity === "medium" ? "راجع الصور والتوثيق قبل الموافقة على أي طلب حجز." : condition.description}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -172,50 +183,98 @@ export function PropertyDetailsPage() {
           </Card>
         </section>
 
-        <aside className="grid h-fit gap-4 lg:sticky lg:top-24">
-          <Card>
-            <CardContent className="grid gap-4 p-6 text-center">
-              <div>
-                <p className="font-bold text-muted-foreground">السعر الشهري</p>
-                <p className="text-4xl font-black text-primary">{formatCurrency(propertyData.price)} د.ل</p>
-              </div>
-              <Button onClick={handleBookNow}>طلب الحجز الآن</Button>
-              <p className="text-sm font-semibold text-muted-foreground">لن يتم تحصيل أي مبلغ الآن</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="grid gap-4 p-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <User className="h-8 w-8" />
-                </div>
+        {ownerMode ? (
+          <HostPropertyAside propertyId={propertyData.id} price={propertyData.price} />
+        ) : (
+          <aside className="grid h-fit gap-4 lg:sticky lg:top-24">
+            <Card>
+              <CardContent className="grid gap-4 p-6 text-center">
                 <div>
-                  <p className="text-sm font-bold text-muted-foreground">المضيف</p>
-                  <p className="font-extrabold">{hostDisplayName(propertyData)}</p>
+                  <p className="font-bold text-muted-foreground">السعر الشهري</p>
+                  <p className="text-4xl font-black text-primary">{formatCurrency(propertyData.price)} د.ل</p>
                 </div>
-              </div>
-              <div className="grid gap-2 text-sm font-bold text-muted-foreground">
-                <div className="flex justify-between"><span>التقييم</span><span>{rating.rating}</span></div>
-                <div className="flex justify-between"><span>العقارات</span><span>{1 + (propertyData.id % 5)} عقارات</span></div>
-              </div>
-              {whatsapp.data?.whatsapp_link ? (
-                <Button asChild variant="outline">
-                  <a href={whatsapp.data.whatsapp_link} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" />تواصل مع المضيف</a>
-                </Button>
-              ) : (
-                <Button asChild variant="outline">
-                  <a href={fallbackWhatsappLink(propertyData)} target="_blank" rel="noreferrer">
-                    <MessageCircle className="h-4 w-4" />
-                    تواصل واتساب
-                  </a>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </aside>
+                <Button onClick={handleBookNow}>طلب الحجز الآن</Button>
+                <p className="text-sm font-semibold text-muted-foreground">لن يتم تحصيل أي مبلغ الآن</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="grid gap-4 p-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <User className="h-8 w-8" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-muted-foreground">المضيف</p>
+                    <p className="font-extrabold">{hostDisplayName(propertyData)}</p>
+                  </div>
+                </div>
+                <div className="grid gap-2 text-sm font-bold text-muted-foreground">
+                  <div className="flex justify-between"><span>التقييم</span><span>{rating.rating}</span></div>
+                  <div className="flex justify-between"><span>العقارات</span><span>{1 + (propertyData.id % 5)} عقارات</span></div>
+                </div>
+                {whatsapp.data?.whatsapp_link ? (
+                  <Button asChild variant="outline">
+                    <a href={whatsapp.data.whatsapp_link} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" />تواصل مع المضيف</a>
+                  </Button>
+                ) : (
+                  <Button asChild variant="outline">
+                    <a href={fallbackWhatsappLink(propertyData)} target="_blank" rel="noreferrer">
+                      <MessageCircle className="h-4 w-4" />
+                      تواصل واتساب
+                    </a>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </aside>
+        )}
       </div>
     </PublicShell>
+  );
+}
+
+function HostPropertyAside({ propertyId, price }: { propertyId: number; price: string | number }) {
+  const request = getHostPreviewRequests().find((item) => item.propertyId === propertyId) ?? getHostPreviewRequests()[0];
+  return (
+    <aside className="grid h-fit gap-4 lg:sticky lg:top-24">
+      <Card>
+        <CardContent className="grid gap-4 p-6">
+          <div className="text-center">
+            <p className="font-bold text-muted-foreground">السعر الشهري</p>
+            <p className="text-4xl font-black text-primary">{formatCurrency(price)} د.ل</p>
+          </div>
+          <div className="grid gap-2 text-sm font-bold text-muted-foreground">
+            <div className="flex justify-between"><span>الحالة</span><Badge variant="success">نشط</Badge></div>
+            <div className="flex justify-between"><span>المشاهدات</span><span>{120 + propertyId % 100}</span></div>
+            <div className="flex justify-between"><span>طلبات الحجز</span><span>{1 + propertyId % 4}</span></div>
+          </div>
+          <Button asChild>
+            <Link to={`/host-preview/properties/${propertyId}/edit`}><Edit className="h-4 w-4" />تعديل العقار</Link>
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="grid gap-4 p-6">
+          <div>
+            <p className="text-sm font-bold text-muted-foreground">آخر طلب حجز</p>
+            <p className="font-extrabold">{request.tenantName}</p>
+          </div>
+          <div className="grid gap-2 text-sm font-bold text-muted-foreground">
+            <div className="flex justify-between"><span>تاريخ البداية</span><span>{request.startDate}</span></div>
+            <div className="flex justify-between"><span>المدة</span><span>{request.duration}</span></div>
+          </div>
+          <div className="rounded-lg bg-accent p-3 text-sm font-semibold text-muted-foreground">{request.message}</div>
+          <Button asChild variant="outline">
+            <a href={tenantWhatsappLink(request.tenantPhone, request.tenantName)} target="_blank" rel="noreferrer">
+              <MessageCircle className="h-4 w-4" />
+              تواصل مع المستأجر
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
+    </aside>
   );
 }
 

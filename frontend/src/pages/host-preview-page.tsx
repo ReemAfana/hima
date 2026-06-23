@@ -1,38 +1,36 @@
-import { Link } from "react-router-dom";
-import { Bell, Calendar, DollarSign, Eye, Home, MessageSquare, Plus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bell, Calendar, Check, DollarSign, Eye, Home, MessageSquare, Plus, X } from "lucide-react";
+import { useState } from "react";
 import { PublicShell } from "@/components/public-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { bookingStatusLabels } from "@/lib/labels";
+import { getHostPreviewProperty, getHostPreviewRequests, setRequestStatus, tenantWhatsappLink } from "@/lib/host-preview-data";
 import { formatCurrency } from "@/lib/utils";
 import { mockProperties } from "@/lib/mock-data";
 import { propertyImages, propertyLocation } from "@/lib/view-models";
 
-const bookingRequests = [
-  {
-    id: "demo-1",
-    propertyTitle: "شقة عائلية حديثة في الرمال",
-    tenantName: "سارة محمد",
-    startDate: "2026-07-01",
-    duration: "6 أشهر",
-    message: "أنا مهتمة باستئجار الشقة لعائلة من 4 أفراد، هل يمكننا مناقشة الشروط؟",
-  },
-  {
-    id: "demo-2",
-    propertyTitle: "منزل مريح من غرفتين في تل الهوى",
-    tenantName: "خالد عمر",
-    startDate: "2026-07-15",
-    duration: "3 أشهر",
-    message: "أبحث عن سكن مؤقت وقريب من الخدمات. هل العقار متاح للمعاينة؟",
-  },
-];
-
 export function HostPreviewPage() {
+  const navigate = useNavigate();
+  const [bookingRequests, setBookingRequests] = useState(getHostPreviewRequests());
   const totalEarnings = mockProperties.slice(0, 3).reduce((sum, property) => sum + Number(property.price), 0);
+  const pendingRequests = bookingRequests.filter((request) => request.status === "pending");
+
+  function acceptRequest(id: string) {
+    setRequestStatus(id, "accepted");
+    setBookingRequests(getHostPreviewRequests());
+    navigate(`/host-preview/contracts/${id}`);
+  }
+
+  function rejectRequest(id: string) {
+    setRequestStatus(id, "rejected");
+    setBookingRequests(getHostPreviewRequests());
+  }
 
   return (
-    <PublicShell>
+    <PublicShell mode="host-preview">
       <div className="page-container grid gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -48,16 +46,18 @@ export function HostPreviewPage() {
           <PreviewStat label="إجمالي العقارات" value={mockProperties.length} icon={Home} />
           <PreviewStat label="حجوزات نشطة" value={3} icon={Calendar} />
           <PreviewStat label="إجمالي الدخل" value={`${formatCurrency(totalEarnings)} د.ل`} icon={DollarSign} />
-          <PreviewStat label="طلبات بانتظار الرد" value={bookingRequests.length} icon={Bell} />
+          <PreviewStat label="طلبات بانتظار الرد" value={pendingRequests.length} icon={Bell} />
         </div>
 
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle>إدارة الإعلانات</CardTitle>
-              <Button disabled>
-                <Plus className="h-4 w-4" />
-                إضافة عقار
+              <Button asChild>
+                <Link to="/host-preview/properties/new">
+                  <Plus className="h-4 w-4" />
+                  إضافة عقار
+                </Link>
               </Button>
             </div>
           </CardHeader>
@@ -67,7 +67,7 @@ export function HostPreviewPage() {
                 <TabsTrigger value="properties">عقاراتي</TabsTrigger>
                 <TabsTrigger value="requests">
                   طلبات الحجز
-                  <Badge className="mr-2 bg-primary">{bookingRequests.length}</Badge>
+                  <Badge className="mr-2 bg-primary">{pendingRequests.length}</Badge>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="properties" className="grid gap-4">
@@ -90,8 +90,8 @@ export function HostPreviewPage() {
                             <MiniMetric label="الحجوزات" value={String(1 + property.id % 4)} icon={Calendar} />
                           </div>
                           <div className="mt-4 flex gap-2">
-                            <Button size="sm" variant="outline" disabled>تعديل</Button>
-                            <Button asChild size="sm" variant="outline"><Link to={`/properties/${property.id}`}>عرض</Link></Button>
+                            <Button asChild size="sm" variant="outline"><Link to={`/host-preview/properties/${property.id}/edit`}>تعديل</Link></Button>
+                            <Button asChild size="sm" variant="outline"><Link to={`/host-preview/properties/${property.id}`}>عرض</Link></Button>
                           </div>
                         </div>
                       </div>
@@ -100,29 +100,46 @@ export function HostPreviewPage() {
                 ))}
               </TabsContent>
               <TabsContent value="requests" className="grid gap-4">
-                {bookingRequests.map((request) => (
-                  <Card key={request.id} className="border">
-                    <CardContent className="grid gap-3 p-4">
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <h3 className="font-extrabold">{request.propertyTitle}</h3>
-                          <p className="font-semibold text-muted-foreground">طلب من: {request.tenantName}</p>
+                {bookingRequests.map((request) => {
+                  const property = getHostPreviewProperty(request.propertyId);
+                  return (
+                    <Card key={request.id} className="border">
+                      <CardContent className="grid gap-3 p-4">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <Link className="font-extrabold text-primary hover:underline" to={`/host-preview/requests/${request.id}`}>
+                              {property?.title ?? "عقار"}
+                            </Link>
+                            <p className="font-semibold text-muted-foreground">طلب من: {request.tenantName}</p>
+                          </div>
+                          <Badge variant={request.status === "accepted" ? "success" : request.status === "rejected" ? "destructive" : "warning"}>
+                            {bookingStatusLabels[request.status]}
+                          </Badge>
                         </div>
-                        <Badge variant="warning">بانتظار الرد</Badge>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <MiniText label="تاريخ البداية" value={request.startDate} />
-                        <MiniText label="المدة" value={request.duration} />
-                      </div>
-                      <div className="rounded-lg bg-accent p-3 text-sm font-semibold text-muted-foreground">{request.message}</div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" disabled>قبول</Button>
-                        <Button size="sm" variant="outline" disabled>رفض</Button>
-                        <Button asChild size="sm" variant="outline"><Link to="/messages"><MessageSquare className="h-4 w-4" />رسالة</Link></Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <MiniText label="تاريخ البداية" value={request.startDate} />
+                          <MiniText label="المدة" value={request.duration} />
+                        </div>
+                        <div className="rounded-lg bg-accent p-3 text-sm font-semibold text-muted-foreground">{request.message}</div>
+                        <div className="flex flex-wrap gap-2">
+                          {request.status === "pending" && <Button size="sm" onClick={() => acceptRequest(request.id)}><Check className="h-4 w-4" />قبول</Button>}
+                          {request.status === "pending" && <Button size="sm" variant="outline" onClick={() => rejectRequest(request.id)}><X className="h-4 w-4" />رفض</Button>}
+                          {request.status === "accepted" && <Button asChild size="sm"><Link to={`/host-preview/contracts/${request.id}`}>عرض العقد</Link></Button>}
+                          {request.status === "accepted" ? (
+                            <Button asChild size="sm" variant="outline">
+                              <a href={tenantWhatsappLink(request.tenantPhone, request.tenantName)} target="_blank" rel="noreferrer">
+                                <MessageSquare className="h-4 w-4" />
+                                تواصل واتساب
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button asChild size="sm" variant="outline"><Link to={`/host-preview/requests/${request.id}`}><MessageSquare className="h-4 w-4" />ارسل رسالة</Link></Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </TabsContent>
             </Tabs>
           </CardContent>

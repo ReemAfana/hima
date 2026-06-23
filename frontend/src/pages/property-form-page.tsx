@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ImagePlus, Save } from "lucide-react";
 import { toast } from "sonner";
 import { hostApi } from "@/api/host";
+import { PublicShell } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useCities, useGovernorates, useNeighborhoods } from "@/hooks/use-locations";
 import { damageLabels, propertyTypeLabels } from "@/lib/labels";
+import { getMockProperty } from "@/lib/mock-data";
 import type { DamageStatus, PropertyFormPayload, PropertyType } from "@/types/api";
 
 const noValue = "__none__";
@@ -32,7 +34,7 @@ const initialForm: PropertyFormPayload = {
   is_ready: false,
 };
 
-export function PropertyFormPage() {
+export function PropertyFormPage({ previewMode = false }: { previewMode?: boolean }) {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
@@ -43,51 +45,53 @@ export function PropertyFormPage() {
   const governorates = useGovernorates();
   const cities = useCities(form.governorate_id);
   const neighborhoods = useNeighborhoods(form.city_id);
-  const property = useQuery({ queryKey: ["host", "properties", id], queryFn: () => hostApi.property(id!), enabled: isEdit });
+  const property = useQuery({ queryKey: ["host", "properties", id], queryFn: () => hostApi.property(id!), enabled: isEdit && !previewMode });
 
   useEffect(() => {
-    if (property.data) {
+    const propertyData = previewMode && isEdit ? getMockProperty(id) : property.data;
+    if (propertyData) {
       // Hydrate the edit form once the existing property arrives from the API.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
-        title: property.data.title ?? "",
-        description: property.data.description ?? "",
-        type: property.data.type,
-        governorate_id: String(property.data.governorate_id ?? ""),
-        city_id: String(property.data.city_id ?? ""),
-        neighborhood_id: String(property.data.neighborhood_id ?? ""),
-        street: property.data.street ?? "",
-        price: String(property.data.price ?? ""),
-        area_m2: String(property.data.area_m2 ?? ""),
-        rooms: String(property.data.rooms ?? ""),
-        damage_status: property.data.damage_status,
-        has_water: Boolean(property.data.has_water),
-        has_electricity: Boolean(property.data.has_electricity),
-        is_ready: Boolean(property.data.is_ready),
+        title: propertyData.title ?? "",
+        description: propertyData.description ?? "",
+        type: propertyData.type,
+        governorate_id: String(propertyData.governorate_id ?? ""),
+        city_id: String(propertyData.city_id ?? ""),
+        neighborhood_id: String(propertyData.neighborhood_id ?? ""),
+        street: propertyData.street ?? "",
+        price: String(propertyData.price ?? ""),
+        area_m2: String(propertyData.area_m2 ?? ""),
+        rooms: String(propertyData.rooms ?? ""),
+        damage_status: propertyData.damage_status,
+        has_water: Boolean(propertyData.has_water),
+        has_electricity: Boolean(propertyData.has_electricity),
+        is_ready: Boolean(propertyData.is_ready),
       });
     }
-  }, [property.data]);
+  }, [id, isEdit, previewMode, property.data]);
 
   const previews = useMemo(() => files.map((file) => ({ file, url: URL.createObjectURL(file) })), [files]);
 
   const save = useMutation({
     mutationFn: async () => {
+      if (previewMode) return { property: { id: 0 } };
       const result = isEdit ? await hostApi.updateProperty(id!, form) : await hostApi.createProperty(form);
       if (files.length) await hostApi.uploadImages(result.property.id, files);
       return result;
     },
     onSuccess: () => {
-      toast.success(isEdit ? "تم تحديث العقار" : "تم إرسال العقار للمراجعة");
+      toast.success(previewMode ? "هذه معاينة فقط. في الحساب الحقيقي سيتم إرسال العقار للمراجعة" : isEdit ? "تم تحديث العقار" : "تم إرسال العقار للمراجعة");
       queryClient.invalidateQueries({ queryKey: ["host", "properties"] });
-      navigate("/host/properties");
+      navigate(previewMode ? "/host-preview" : "/host/properties");
     },
     onError: () => toast.error("تعذر حفظ العقار. تحقق من البيانات المدخلة"),
   });
 
-  return (
+  const content = (
     <div className="page-container max-w-5xl">
       <Card>
-        <CardHeader><CardTitle>{isEdit ? "تعديل العقار" : "إضافة عقار جديد"}</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{previewMode && isEdit ? "معاينة تعديل العقار" : previewMode ? "معاينة إضافة عقار" : isEdit ? "تعديل العقار" : "إضافة عقار جديد"}</CardTitle></CardHeader>
         <CardContent>
           <form
             className="grid gap-5"
@@ -190,7 +194,7 @@ export function PropertyFormPage() {
               <p className="text-sm font-semibold text-muted-foreground">هذه الحقول للعرض وتجهيز الواجهة فقط في هذه المرحلة، ولا ترسل إلى Laravel حالياً.</p>
             </Section>
             <div className="flex gap-2">
-              <Button disabled={save.isPending}><Save className="h-4 w-4" />{isEdit ? "حفظ التعديلات" : "إرسال للمراجعة"}</Button>
+              <Button disabled={save.isPending}><Save className="h-4 w-4" />{previewMode ? "تجربة الإرسال" : isEdit ? "حفظ التعديلات" : "إرسال للمراجعة"}</Button>
               <Button type="button" variant="outline" onClick={() => navigate(-1)}>إلغاء</Button>
             </div>
           </form>
@@ -198,6 +202,12 @@ export function PropertyFormPage() {
       </Card>
     </div>
   );
+
+  if (previewMode) {
+    return <PublicShell mode="host-preview">{content}</PublicShell>;
+  }
+
+  return content;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

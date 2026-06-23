@@ -1,18 +1,22 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Building2, FileText, Home, LogOut, Menu, MessageSquare, Search, User, UserPlus, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Bell, Building2, ClipboardList, FileSignature, FileText, Home, LogOut, Menu, MessageSquare, Search, User, UserPlus, X } from "lucide-react";
 import { authApi } from "@/api/auth";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
 import { roleLabels } from "@/lib/labels";
 import { fullName } from "@/lib/utils";
 
-export function PublicShell({ children }: { children: React.ReactNode }) {
+type ShellMode = "public" | "host-preview" | "tenant-preview";
+
+export function PublicShell({ children, mode = "public" }: { children: React.ReactNode; mode?: ShellMode }) {
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const inferredMode = location.pathname.startsWith("/tenant-preview") ? "tenant-preview" : location.pathname.startsWith("/host-preview") ? "host-preview" : mode;
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader onOpenMenu={() => setOpen(true)} />
-      <SideMenu open={open} onClose={() => setOpen(false)} />
+      <SideMenu open={open} onClose={() => setOpen(false)} mode={inferredMode} />
       <main className="pt-16">{children}</main>
     </div>
   );
@@ -36,9 +40,11 @@ function PublicHeader({ onOpenMenu }: { onOpenMenu: () => void }) {
   );
 }
 
-function SideMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+function SideMenu({ open, onClose, mode }: { open: boolean; onClose: () => void; mode: ShellMode }) {
   const navigate = useNavigate();
   const { token, role, user, clearAuth } = useAuthStore();
+  const isHostPreview = mode === "host-preview";
+  const isTenantPreview = mode === "tenant-preview";
 
   async function logout() {
     try {
@@ -55,6 +61,12 @@ function SideMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   function go(path: string) {
     onClose();
     navigate(path);
+  }
+
+  function previewLogout() {
+    clearAuth();
+    onClose();
+    navigate("/");
   }
 
   return (
@@ -75,29 +87,55 @@ function SideMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           </Button>
         </div>
 
-        {token && (
+        {(token || isHostPreview || isTenantPreview) && (
           <div className="mb-5 rounded-lg bg-white/10 p-4">
-            <div className="font-extrabold">{fullName(user)}</div>
-            <div className="text-sm font-bold text-green-100">{role ? roleLabels[role] : ""}</div>
+            <div className="font-extrabold">{isHostPreview ? "مضيف حِمى التجريبي" : isTenantPreview ? "مستأجر حِمى التجريبي" : fullName(user)}</div>
+            <div className="text-sm font-bold text-green-100">{isHostPreview ? roleLabels.host : isTenantPreview ? roleLabels.tenant : role ? roleLabels[role] : ""}</div>
           </div>
         )}
 
         <nav className="grid gap-2">
-          {!token && (
+          {isHostPreview && (
+            <>
+              <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/host-preview")} />
+              <MenuItem icon={Home} label="عقاراتي" onClick={() => go("/host-preview")} />
+              <MenuItem icon={ClipboardList} label="طلباتي" onClick={() => go("/host-preview/requests")} />
+              <MenuItem icon={Bell} label="الإشعارات" onClick={() => go("/host-preview/notifications")} />
+              <MenuItem icon={FileSignature} label="عقودي" onClick={() => go("/host-preview/contracts")} />
+            </>
+          )}
+          {isTenantPreview && (
+            <>
+              <MenuItem icon={User} label="لوحة المستأجر" onClick={() => go("/tenant-preview")} />
+              <MenuItem icon={ClipboardList} label="طلباتي" onClick={() => go("/tenant-preview/requests")} />
+              <MenuItem icon={FileSignature} label="عقودي" onClick={() => go("/tenant-preview/contracts")} />
+              <MenuItem icon={Bell} label="اشعاراتي" onClick={() => go("/tenant-preview/notifications")} />
+            </>
+          )}
+          {!token && !isHostPreview && !isTenantPreview && (
             <>
               <MenuItem icon={User} label="تسجيل الدخول / إنشاء حساب" onClick={() => go("/login")} />
               <MenuItem icon={UserPlus} label="كن مضيفاً" onClick={() => go("/become-host")} />
             </>
           )}
-          {token && role === "host" && <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/dashboard/host")} />}
-          {token && role === "admin" && <MenuItem icon={Building2} label="لوحة المشرف" onClick={() => go("/dashboard/admin")} />}
-          {token && role === "tenant" && <MenuItem icon={User} label="لوحة المستأجر" onClick={() => go("/dashboard/tenant")} />}
+          {!isHostPreview && !isTenantPreview && token && role === "host" && <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/dashboard/host")} />}
+          {!isHostPreview && !isTenantPreview && token && role === "admin" && <MenuItem icon={Building2} label="لوحة المشرف" onClick={() => go("/dashboard/admin")} />}
+          {!isHostPreview && !isTenantPreview && token && role === "tenant" && (
+            <>
+              <MenuItem icon={User} label="لوحة المستأجر" onClick={() => go("/dashboard/tenant")} />
+              <MenuItem icon={ClipboardList} label="طلباتي" onClick={() => go("/tenant/requests")} />
+              <MenuItem icon={FileSignature} label="عقودي" onClick={() => go("/tenant/contracts")} />
+              <MenuItem icon={Bell} label="اشعاراتي" onClick={() => go("/tenant/notifications")} />
+            </>
+          )}
           <div className="my-3 border-t border-white/20" />
-          <MenuItem icon={Home} label="الرئيسية" onClick={() => go("/")} />
-          <MenuItem icon={Search} label="أحدث العقارات والبحث" onClick={() => go("/search")} />
-          {token && <MenuItem icon={MessageSquare} label="الرسائل" onClick={() => go("/messages")} />}
+          <MenuItem icon={Home} label="الرئيسية" onClick={() => go(isTenantPreview ? "/tenant-preview" : "/")} />
+          {!isHostPreview && <MenuItem icon={Search} label="أحدث العقارات والبحث" onClick={() => go("/search")} />}
+          {!isHostPreview && !isTenantPreview && token && <MenuItem icon={MessageSquare} label="الرسائل" onClick={() => go("/messages")} />}
           <MenuItem icon={FileText} label="السياسات والإرشادات" onClick={() => go("/policies")} />
-          {token && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={logout} />}
+          {isHostPreview && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={previewLogout} />}
+          {isTenantPreview && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={previewLogout} />}
+          {!isHostPreview && token && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={logout} />}
         </nav>
 
         <div className="absolute bottom-6 left-6 right-6 rounded-lg bg-white/10 p-4">

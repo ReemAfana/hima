@@ -10,14 +10,14 @@ import { mockProperties } from "@/lib/mock-data";
 import { formatCurrency } from "@/lib/utils";
 import { hostDisplayName, propertyImages, propertyLocation, propertyRating, propertyTypeLabel } from "@/lib/view-models";
 
-export function HomePage() {
+export function HomePage({ tenantPreview = false }: { tenantPreview?: boolean }) {
   const navigate = useNavigate();
   const properties = useQuery({ queryKey: ["properties", "home"], queryFn: () => propertiesApi.list({}) });
   const sourceProperties = properties.data?.length ? properties.data : mockProperties;
   const rows = [...sourceProperties].sort((a, b) => propertyRating(b).rating - propertyRating(a).rating);
 
   return (
-    <PublicShell>
+    <PublicShell mode={tenantPreview ? "tenant-preview" : "public"}>
       <section className="bg-gradient-to-br from-primary via-[#2f8f46] to-[#9db98f] px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto mb-8 max-w-2xl">
@@ -39,9 +39,10 @@ export function HomePage() {
               {rows.map((property) => {
                 const rating = propertyRating(property);
                 const image = propertyImages(property)[0];
+                const detailHref = tenantPreview ? `/tenant-preview/properties/${property.id}` : `/properties/${property.id}`;
                 return (
                   <Card key={property.id} className="overflow-hidden border-0 bg-white/95 shadow-hima transition-shadow hover:shadow-hima-hover">
-                    <Link to={`/properties/${property.id}`} className="block">
+                    <Link to={detailHref} className="block">
                       <div className="relative aspect-video overflow-hidden bg-accent">
                         <img src={image} alt={property.title} className="h-full w-full object-cover transition-transform hover:scale-105" />
                         <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-sm font-extrabold text-foreground">
@@ -52,7 +53,7 @@ export function HomePage() {
                     </Link>
                     <CardContent className="grid gap-3 p-4">
                       <div>
-                        <Link to={`/properties/${property.id}`} className="line-clamp-1 text-lg font-extrabold text-foreground hover:text-primary">
+                        <Link to={detailHref} className="line-clamp-1 text-lg font-extrabold text-foreground hover:text-primary">
                           {property.title}
                         </Link>
                         <div className="mt-2 flex items-center gap-2 text-sm font-bold text-muted-foreground">
@@ -76,7 +77,7 @@ export function HomePage() {
                           <div className="font-semibold text-muted-foreground">{rating.reviewCount} تقييم - {propertyTypeLabel(property)}</div>
                         </div>
                         <Button asChild size="sm">
-                          <Link to={`/properties/${property.id}`}>عرض التفاصيل</Link>
+                          <Link to={detailHref}>عرض التفاصيل</Link>
                         </Button>
                       </div>
                     </CardContent>

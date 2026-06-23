@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { getMockProperty } from "@/lib/mock-data";
 import { formatCurrency } from "@/lib/utils";
 
 const durationOptions = [
@@ -33,8 +34,9 @@ export function BookingPage() {
     agreeToDeposit: false,
   });
   const property = useQuery({ queryKey: ["properties", id], queryFn: () => propertiesApi.show(id!), enabled: Boolean(id) });
+  const propertyData = property.data ?? getMockProperty(id);
   const months = Number(form.duration || 0);
-  const monthlyPrice = Number(property.data?.price ?? 0);
+  const monthlyPrice = Number(propertyData?.price ?? 0);
   const rentTotal = months * monthlyPrice;
   const grandTotal = rentTotal + monthlyPrice;
   const endDate = useMemo(() => {
@@ -60,6 +62,10 @@ export function BookingPage() {
       toast.error("يجب الموافقة على جميع الشروط قبل إرسال الطلب");
       return;
     }
+    if (window.location.pathname.startsWith("/tenant-preview")) {
+      navigate("/tenant-preview/requests");
+      return;
+    }
     createBooking.mutate({ property_id: Number(id), start_date: form.startDate, end_date: endDate });
   }
 
@@ -73,7 +79,7 @@ export function BookingPage() {
               <CardContent className="grid gap-4">
                 <div>
                   <Label className="text-muted-foreground">العقار</Label>
-                  <p className="mt-1 font-extrabold text-foreground">{property.data?.title ?? "..."}</p>
+                  <p className="mt-1 font-extrabold text-foreground">{propertyData?.title ?? "..."}</p>
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
@@ -145,7 +151,7 @@ export function BookingPage() {
           <Card>
             <CardHeader><CardTitle>ملخص الحجز</CardTitle></CardHeader>
             <CardContent className="grid gap-4">
-              <Summary label="العقار" value={property.data?.title ?? "-"} />
+              <Summary label="العقار" value={propertyData?.title ?? "-"} />
               <div className="border-t pt-4">
                 <Summary label="الإيجار الشهري" value={`${formatCurrency(monthlyPrice)} د.ل`} />
                 <Summary label="المدة" value={months ? durationOptions.find((option) => option.value === form.duration)?.label ?? "-" : "-"} />
