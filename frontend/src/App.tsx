@@ -19,8 +19,9 @@ import { MessagesPage } from "@/pages/messages-page";
 import { PoliciesPage } from "@/pages/policies-page";
 import { PropertyDetailsPage } from "@/pages/property-details-page";
 import { PropertyFormPage } from "@/pages/property-form-page";
+import { AdminPreviewDashboardPage, HostPreviewDashboardPage, TenantPreviewDashboardPage } from "@/pages/preview-dashboard-pages";
 import { SearchPage } from "@/pages/search-page";
-import { TenantContractsPage, TenantNotificationsPage, TenantRequestsPage } from "@/pages/tenant-workflow-pages";
+import { TenantContractsPage, TenantNotificationsPage, TenantRequestDetailsPage, TenantRequestsPage } from "@/pages/tenant-workflow-pages";
 import { legacyPath } from "@/lib/utils";
 import { dashboardForRole, useAuthStore } from "@/stores/auth-store";
 import type { Role } from "@/types/api";
@@ -41,11 +42,15 @@ export const routes = [
     children: [{ path: "/complete-profile", element: <CompleteProfilePage /> }],
   },
   { path: "/", element: <HomePage /> },
+  { path: "/admin-preview", element: <AdminPreviewDashboardPage /> },
   { path: "/tenant-preview", element: <HomePage tenantPreview /> },
+  { path: "/tenant-preview/dashboard", element: <TenantPreviewDashboardPage /> },
   { path: "/tenant-preview/properties/:id", element: <PropertyDetailsPage tenantPreview /> },
   { path: "/tenant-preview/properties/:id/book", element: <BookingPage /> },
+  { path: "/tenant-preview/policies", element: <PoliciesPage /> },
   { path: "/search", element: <SearchPage /> },
   { path: "/host-preview", element: <HostPreviewPage /> },
+  { path: "/host-preview/dashboard", element: <HostPreviewDashboardPage /> },
   { path: "/host-preview/properties/new", element: <PropertyFormPage previewMode /> },
   { path: "/host-preview/properties/:id", element: <PropertyDetailsPage ownerMode /> },
   { path: "/host-preview/properties/:id/edit", element: <PropertyFormPage previewMode /> },
@@ -54,10 +59,12 @@ export const routes = [
   { path: "/host-preview/notifications", element: <HostPreviewNotificationsPage /> },
   { path: "/host-preview/contracts", element: <HostPreviewContractsPage /> },
   { path: "/host-preview/contracts/:id", element: <HostPreviewContractDetailsPage /> },
+  { path: "/host-preview/policies", element: <PoliciesPage /> },
   { path: "/properties", element: <SearchPage /> },
   { path: "/properties/:id", element: <PropertyDetailsPage /> },
   { path: "/policies", element: <PoliciesPage /> },
   { path: "/tenant-preview/requests", element: <TenantRequestsPage /> },
+  { path: "/tenant-preview/requests/:id", element: <TenantRequestDetailsPage /> },
   { path: "/tenant-preview/contracts", element: <TenantContractsPage /> },
   { path: "/tenant-preview/notifications", element: <TenantNotificationsPage /> },
   {
@@ -65,6 +72,7 @@ export const routes = [
     children: [
       { path: "/properties/:id/book", element: <BookingPage /> },
       { path: "/tenant/requests", element: <TenantRequestsPage /> },
+      { path: "/tenant/requests/:id", element: <TenantRequestDetailsPage /> },
       { path: "/tenant/contracts", element: <TenantContractsPage /> },
       { path: "/tenant/notifications", element: <TenantNotificationsPage /> },
     ],

@@ -15,18 +15,19 @@ export function PublicShell({ children, mode = "public" }: { children: React.Rea
   const inferredMode = location.pathname.startsWith("/tenant-preview") ? "tenant-preview" : location.pathname.startsWith("/host-preview") ? "host-preview" : mode;
   return (
     <div className="min-h-screen bg-background">
-      <PublicHeader onOpenMenu={() => setOpen(true)} />
+      <PublicHeader mode={inferredMode} onOpenMenu={() => setOpen(true)} />
       <SideMenu open={open} onClose={() => setOpen(false)} mode={inferredMode} />
       <main className="pt-16">{children}</main>
     </div>
   );
 }
 
-function PublicHeader({ onOpenMenu }: { onOpenMenu: () => void }) {
+function PublicHeader({ mode, onOpenMenu }: { mode: ShellMode; onOpenMenu: () => void }) {
+  const homePath = mode === "tenant-preview" ? "/tenant-preview" : mode === "host-preview" ? "/host-preview" : "/";
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b bg-primary text-primary-foreground shadow-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-3 text-2xl font-black">
+        <Link to={homePath} className="flex items-center gap-3 text-2xl font-black">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
             <Home className="h-5 w-5" />
           </span>
@@ -95,18 +96,19 @@ function SideMenu({ open, onClose, mode }: { open: boolean; onClose: () => void;
         )}
 
         <nav className="grid gap-2">
+          {isTenantPreview && <MenuItem icon={User} label="الملف الشخصي" onClick={() => go("/tenant-preview/dashboard")} />}
+          {isHostPreview && <MenuItem icon={Building2} label="الملف الشخصي" onClick={() => go("/host-preview/dashboard")} />}
+          <MenuItem icon={Home} label="الرئيسية" onClick={() => go(isTenantPreview ? "/tenant-preview" : isHostPreview ? "/host-preview" : "/")} />
           {isHostPreview && (
             <>
-              <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/host-preview")} />
               <MenuItem icon={Home} label="عقاراتي" onClick={() => go("/host-preview")} />
-              <MenuItem icon={ClipboardList} label="طلباتي" onClick={() => go("/host-preview/requests")} />
-              <MenuItem icon={Bell} label="الإشعارات" onClick={() => go("/host-preview/notifications")} />
+              <MenuItem icon={ClipboardList} label="طلبات الحجز" onClick={() => go("/host-preview/requests")} />
               <MenuItem icon={FileSignature} label="عقودي" onClick={() => go("/host-preview/contracts")} />
+              <MenuItem icon={Bell} label="الإشعارات" onClick={() => go("/host-preview/notifications")} />
             </>
           )}
           {isTenantPreview && (
             <>
-              <MenuItem icon={User} label="لوحة المستأجر" onClick={() => go("/tenant-preview")} />
               <MenuItem icon={ClipboardList} label="طلباتي" onClick={() => go("/tenant-preview/requests")} />
               <MenuItem icon={FileSignature} label="عقودي" onClick={() => go("/tenant-preview/contracts")} />
               <MenuItem icon={Bell} label="اشعاراتي" onClick={() => go("/tenant-preview/notifications")} />
@@ -116,8 +118,6 @@ function SideMenu({ open, onClose, mode }: { open: boolean; onClose: () => void;
             <>
               <MenuItem icon={User} label="تسجيل الدخول / إنشاء حساب" onClick={() => go("/login")} />
               <MenuItem icon={UserPlus} label="كن مضيفاً" onClick={() => go("/become-host")} />
-              <MenuItem icon={User} label="معاينة وضع المستأجر" onClick={() => go("/tenant-preview")} />
-              <MenuItem icon={Building2} label="معاينة وضع المضيف" onClick={() => go("/host-preview")} />
             </>
           )}
           {!isHostPreview && !isTenantPreview && token && role === "host" && <MenuItem icon={Building2} label="لوحة المضيف" onClick={() => go("/dashboard/host")} />}
@@ -130,11 +130,10 @@ function SideMenu({ open, onClose, mode }: { open: boolean; onClose: () => void;
               <MenuItem icon={Bell} label="اشعاراتي" onClick={() => go("/tenant/notifications")} />
             </>
           )}
-          <div className="my-3 border-t border-white/20" />
-          <MenuItem icon={Home} label="الرئيسية" onClick={() => go(isTenantPreview ? "/tenant-preview" : "/")} />
-          {!isHostPreview && <MenuItem icon={Search} label="أحدث العقارات والبحث" onClick={() => go("/search")} />}
+          {!isHostPreview && <MenuItem icon={Search} label="أحدث العقارات والبحث" onClick={() => go(isTenantPreview ? "/tenant-preview" : "/search")} />}
           {!isHostPreview && !isTenantPreview && token && <MenuItem icon={MessageSquare} label="الرسائل" onClick={() => go("/messages")} />}
-          <MenuItem icon={FileText} label="السياسات والإرشادات" onClick={() => go("/policies")} />
+          <div className="my-3 border-t border-white/20" />
+          <MenuItem icon={FileText} label="السياسات والإرشادات" onClick={() => go(isTenantPreview ? "/tenant-preview/policies" : isHostPreview ? "/host-preview/policies" : "/policies")} />
           {isHostPreview && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={previewLogout} />}
           {isTenantPreview && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={previewLogout} />}
           {!isHostPreview && token && <MenuItem icon={LogOut} label="تسجيل الخروج" onClick={logout} />}
