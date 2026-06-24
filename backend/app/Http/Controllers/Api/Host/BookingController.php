@@ -39,8 +39,9 @@ class BookingController extends Controller
         }
 
         // Optional discount
+        $minPrice = ceil($booking->price * 0.50); // لا يقل عن 50% من السعر الأصلي
         $data = $request->validate([
-            'discounted_price' => 'nullable|numeric|min:0',
+            'discounted_price' => 'nullable|numeric|min:' . $minPrice . '|max:' . $booking->price,
         ]);
 
         // Apply discount if provided
