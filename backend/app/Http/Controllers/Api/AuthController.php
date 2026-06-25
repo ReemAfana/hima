@@ -33,23 +33,20 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
-    {
+    public function login(Request $request)  {
         $credentials = $request->validate([
             'email'    => 'required|email',
             'password' => 'required|string',
         ]);
-
         if (!Auth::guard('web')->attempt($credentials)) {
             return response()->json(['message' => 'Invalid credentials.'], 401);
         }
-
+        
         $user = Auth::guard('web')->user();
 
         if (!$user->hasVerifiedEmail()) {
             return response()->json(['message' => 'Please verify your email first.'], 403);
         }
-
         $user->tokens()->delete();
         $token = $user->createToken(
          'auth_token',
@@ -58,7 +55,6 @@ class AuthController extends Controller
           )->plainTextToken;
         
         $role  = $user->getRoleNames()->first();
-
         return response()->json([
             'token'               => $token,
             'role'                => $role,
