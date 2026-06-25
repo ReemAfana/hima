@@ -20,12 +20,14 @@ class Contract extends Model
     'price',
     'status',
     'pdf_path',
+    'closed_at',
 ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date'   => 'date',
         'price'      => 'decimal:2',
+        'closed_at' => 'datetime',
     ];
 
     // Relationships

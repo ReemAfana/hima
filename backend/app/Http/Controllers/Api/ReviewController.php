@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Models\Review;
 use App\Services\NotificationService;
+use App\Models\ReviewWindow;
 use Illuminate\Http\Request;
 
 class ReviewController extends Controller
@@ -39,6 +40,18 @@ class ReviewController extends Controller
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
 
+        // Check if review window is open
+        $window = ReviewWindow::where('contract_id', $contract->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (!$window) {
+            return response()->json([
+                'message' => 'Review period has expired or not yet available.',
+            ], 403);
+        }
+
         // Determine review type and reviewee
         if ($role === 'tenant') {
             $type       = 'tenant_to_host';
@@ -70,6 +83,9 @@ class ReviewController extends Controller
             'comment'      => $data['comment'] ?? null,
             'type'         => $type,
         ]);
+
+        // Close the review window
+        $window->update(['status' => 'closed']);
 
         // Notify reviewee
         NotificationService::send(

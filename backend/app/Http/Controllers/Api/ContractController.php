@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
 use App\Services\NotificationService;
+use App\Models\ReviewWindow;
 use Illuminate\Http\Request;
 
 class ContractController extends Controller
@@ -93,7 +94,27 @@ class ContractController extends Controller
         }
 
         // Cancel contract
-        $contract->update(['status' => 'cancelled']);
+        $contract->update([
+            'status'    => 'cancelled',
+            'closed_at' => now(),
+        ]);
+
+        // Create review windows for both parties
+        ReviewWindow::create([
+            'contract_id'      => $contract->id,
+            'user_id'          => $contract->tenant_id,
+            'role'             => 'tenant',
+            'reminders_sent'   => 1,
+            'last_reminded_at' => now(),
+        ]);
+
+        ReviewWindow::create([
+            'contract_id'      => $contract->id,
+            'user_id'          => $contract->host_id,
+            'role'             => 'host',
+            'reminders_sent'   => 1,
+            'last_reminded_at' => now(),
+        ]);
 
         // Free up the property
         $contract->property->update(['availability' => 'available']);
