@@ -82,7 +82,8 @@ class PropertyController extends Controller
             NotificationService::send(
                 $booking->tenant_id,
                 'Booking Cancelled',
-                'Your booking request for "' . $property->title . '" has been cancelled. The property has been temporarily suspended by the administration.',
+                'Your booking request for "' . $property->title . '" has been cancelled. 
+                The property has been temporarily suspended by the administration.',
                 'booking_cancelled',
                 $booking->id
             );
