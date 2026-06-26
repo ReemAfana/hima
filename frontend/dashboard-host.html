@@ -180,7 +180,6 @@ const statusMap = {pending:'قيد المراجعة',accepted:'مقبول',rejec
 const statusCls = {pending:'badge-pending',accepted:'badge-accepted',rejected:'badge-rejected'};
 
 async function init(){
-    requireAuth();
     const name = localStorage.getItem('name')||'';
     document.getElementById('welcome-name').textContent = name;
     document.getElementById('sidebar-name').textContent = name;

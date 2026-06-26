@@ -13,8 +13,10 @@ function renderNavbar() {
 
     navbar.innerHTML = `
         <nav style="
-            background: #0D2B1F;
-            padding: 1rem 2rem;
+            background: #fff;
+            border-bottom: 1px solid #ece7df;
+            padding: 0 34px;
+            height: 72px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -26,43 +28,65 @@ function renderNavbar() {
             right: 0;
             left: 0;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
         ">
             <a href="index.html" style="
-                font-size: 1.5rem;
-                font-weight: 900;
-                color: #D4A853;
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                font-size: 24px;
+                font-weight: 800;
+                color: #1d5c2e;
                 text-decoration: none;
-            ">حمى <span style="color:white;font-weight:300">| منصة إيجار</span></a>
+            ">
+                <span style="
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 11px;
+                    background: #1d5c2e;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: 0 6px 16px rgba(29,92,46,.18);
+                ">
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 11.5 12 5l8 6.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 10.5V19h12v-8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10.5 19v-4.5h3V19" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                حِمى
+            </a>
 
-            <div style="display:flex;align-items:center;gap:1rem;">
-                <span style="color:rgba(255,255,255,0.7);font-size:0.9rem;">
+            <div style="display:flex;align-items:center;gap:16px;">
+                <span style="color:#6f6a5d;font-size:14px;font-weight:700;">
                     ${name} — ${roleMap[role] || role}
                 </span>
                 <button onclick="logout()" style="
-                    background: transparent;
-                    border: 1.5px solid #D4A853;
-                    color: #D4A853;
-                    border-radius: 8px;
-                    padding: 0.4rem 1rem;
+                    width:auto;
+                    background: #f3efe8;
+                    border: none;
+                    color: #6f6a5d;
+                    border-radius: 10px;
+                    padding: 9px 16px;
                     font-family: Cairo, sans-serif;
-                    font-size: 0.875rem;
-                    font-weight: 600;
+                    font-size: 13px;
+                    font-weight: 800;
                     cursor: pointer;
                     transition: all 0.2s;
-                " onmouseover="this.style.background='#D4A853';this.style.color='#0D2B1F'"
-                   onmouseout="this.style.background='transparent';this.style.color='#D4A853'">
+                " onmouseover="this.style.background='#edf8ed';this.style.color='#1d5c2e'"
+                   onmouseout="this.style.background='#f3efe8';this.style.color='#6f6a5d'">
                     تسجيل الخروج
                 </button>
             </div>
         </nav>
-        <div style="height: 65px;"></div>
+        <div style="height: 72px;"></div>
     `;
 }
 
 
 document.addEventListener('DOMContentLoaded', function() {
-        if (!localStorage.getItem('token')) {
+    if (!localStorage.getItem('token')) {
         window.location.href = 'login.html';
         return;
     }
