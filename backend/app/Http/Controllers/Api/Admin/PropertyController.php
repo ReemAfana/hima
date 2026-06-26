@@ -100,7 +100,6 @@ class PropertyController extends Controller
             'property_rejected',
             $property->id
         );
-
         return response()->json([
             'message'  => 'Property rejected.',
             'property' => $property,
