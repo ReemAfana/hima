@@ -21,6 +21,8 @@ class Contract extends Model
     'status',
     'pdf_path',
     'closed_at',
+    'expiry_reminder_date',
+    'expiry_reminder_sent',
 ];
 
     protected $casts = [
@@ -28,6 +30,8 @@ class Contract extends Model
         'end_date'   => 'date',
         'price'      => 'decimal:2',
         'closed_at' => 'datetime',
+        'expiry_reminder_date' => 'date',
+        'expiry_reminder_sent' => 'boolean',
     ];
 
     // Relationships
