@@ -79,16 +79,35 @@ class BookingController extends Controller
             );
         }
 
+        // Calculate expiry reminder date
+        $startDate      = \Carbon\Carbon::parse($booking->start_date);
+        $endDate        = \Carbon\Carbon::parse($booking->end_date);
+        $duration       = $startDate->diffInDays($endDate);
+        $longDuration   = config('contracts.long_duration_days');
+        $mediumDuration = config('contracts.medium_duration_days');
+        $longReminder   = config('contracts.long_reminder_days');
+        $mediumReminder = config('contracts.medium_reminder_days');
+
+        if ($duration > $longDuration) {
+            $expiryReminderDate = $endDate->copy()->subDays($longReminder);
+        } elseif ($duration >= $mediumDuration) {
+            $expiryReminderDate = $endDate->copy()->subDays($mediumReminder);
+        } else {
+            $expiryReminderDate = null;
+        }
+
         // Auto-create contract with final price
         $contract = Contract::create([
-            'booking_id'  => $booking->id,
-            'tenant_id'   => $booking->tenant_id,
-            'host_id'     => $request->user()->id,
-            'property_id' => $booking->property_id,
-            'start_date'  => $booking->start_date,
-            'end_date'    => $booking->end_date,
-            'price'       => $finalPrice,
-            'status'      => 'active',
+            'booking_id'           => $booking->id,
+            'tenant_id'            => $booking->tenant_id,
+            'host_id'              => $request->user()->id,
+            'property_id'          => $booking->property_id,
+            'start_date'           => $booking->start_date,
+            'end_date'             => $booking->end_date,
+            'price'                => $finalPrice,
+            'status'               => 'active',
+            'expiry_reminder_date' => $expiryReminderDate,
+            'expiry_reminder_sent' => false,
         ]);
         // Generate PDF
         $pdfPath = ContractPdfService::generate($contract);
