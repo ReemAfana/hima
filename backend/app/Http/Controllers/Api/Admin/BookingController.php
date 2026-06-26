@@ -24,7 +24,6 @@ class BookingController extends Controller
                 'status'      => $booking->status,
                 'start_date'  => $booking->start_date,
                 'end_date'    => $booking->end_date,
-               
                 'created_at'  => $booking->created_at,
                 'property'    => $booking->property,
                 'tenant'      => [
@@ -34,10 +33,29 @@ class BookingController extends Controller
                 ],
             ];
         });
-
         return response()->json($bookings);
     }
+  // View single booking
+    public function show($id)
+    {
+        $booking = Booking::with([
+            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
+            'tenant:id,first_name',
+        ])->findOrFail($id);
 
+        return response()->json([
+            'id'         => $booking->id,
+            'status'     => $booking->status,
+            'start_date' => $booking->start_date,
+            'end_date'   => $booking->end_date,
+            'created_at' => $booking->created_at,
+            'property'   => $booking->property,
+            'tenant'     => [
+                'id'         => $booking->tenant->id,
+                'first_name' => $booking->tenant->first_name,
+            ],
+        ]);
+    }
     // Archive stale pending bookings (older than 48 hours)
     public function archiveStale()
     {
@@ -56,29 +74,6 @@ class BookingController extends Controller
         return response()->json([
             'message' => "Archived {$count} stale pending bookings.",
             'count'   => $count,
-        ]);
-    }
-
-    // View single booking
-    public function show($id)
-    {
-        $booking = Booking::with([
-            'property:id,title,type,governorate_id,city_id,neighborhood_id,street',
-            'tenant:id,first_name',
-        ])->findOrFail($id);
-
-        return response()->json([
-            'id'         => $booking->id,
-            'status'     => $booking->status,
-            'start_date' => $booking->start_date,
-            'end_date'   => $booking->end_date,
-           
-            'created_at' => $booking->created_at,
-            'property'   => $booking->property,
-            'tenant'     => [
-                'id'         => $booking->tenant->id,
-                'first_name' => $booking->tenant->first_name,
-            ],
         ]);
     }
 }
