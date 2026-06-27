@@ -63,7 +63,8 @@ class BookingController extends Controller
             NotificationService::send(
                 $rejected->tenant_id,
                 'Booking Request Rejected',
-                'Your booking request for "' . $booking->property->title . '" was rejected because the property has been booked by another tenant.',
+                'Your booking request for "' . $booking->property->title . '" was rejected
+                because the property has been booked by another tenant.',
                 'booking_rejected',
                 $rejected->id
             );
