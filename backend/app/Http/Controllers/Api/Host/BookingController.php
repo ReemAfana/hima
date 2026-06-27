@@ -25,13 +25,11 @@ class BookingController extends Controller
     }
 
     // Accept a booking request
-    public function accept(Request $request, $id)
-    {
+    public function accept(Request $request, $id) {
         $booking = Booking::whereHas('property', function ($query) use ($request) {
             $query->where('host_id', $request->user()->id);
         })
             ->findOrFail($id);
-
         if ($booking->status !== 'pending') {
             return response()->json([
                 'message' => 'Only pending bookings can be accepted.',
