@@ -19,9 +19,8 @@ class PropertyController extends Controller
     }
 
     // Submit a new property
-    public function store(Request $request)
-    {
-        // تحقق من اكتمال البيانات
+    public function store(Request $request){
+        // check if the profile info are complete 
         if (!$request->user()->isHostReady()) {
             return response()->json([
                 'message'  => 'Please complete your profile before listing a property.',
@@ -44,7 +43,6 @@ class PropertyController extends Controller
             'has_electricity' => 'boolean',
             'is_ready'        => 'boolean',
         ]);
-
         $property = Property::create([
             ...$data,
             'host_id'      => $request->user()->id,
