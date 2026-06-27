@@ -8,14 +8,15 @@ use App\Models\Contract;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use App\Services\ContractPdfService;
+
 class BookingController extends Controller
 {
     // List all booking requests for host's properties
     public function index(Request $request)
     {
         $bookings = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->with('property:id,title,governorate_id,city_id,neighborhood_id,street', 'tenant:id,first_name,last_name,email,phone')
             ->latest()
             ->get();
@@ -27,8 +28,8 @@ class BookingController extends Controller
     public function accept(Request $request, $id)
     {
         $booking = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->findOrFail($id);
 
         if ($booking->status !== 'pending') {
@@ -38,8 +39,9 @@ class BookingController extends Controller
         }
 
         // Optional discount
+        $minPrice = ceil($booking->price * 0.50); // لا يقل عن 50% من السعر الأصلي
         $data = $request->validate([
-            'discounted_price' => 'nullable|numeric|min:0',
+            'discounted_price' => 'nullable|numeric|min:' . $minPrice . '|max:' . $booking->price,
         ]);
 
         // Apply discount if provided
@@ -77,16 +79,35 @@ class BookingController extends Controller
             );
         }
 
+        // Calculate expiry reminder date
+        $startDate      = \Carbon\Carbon::parse($booking->start_date);
+        $endDate        = \Carbon\Carbon::parse($booking->end_date);
+        $duration       = $startDate->diffInDays($endDate);
+        $longDuration   = config('contracts.long_duration_days');
+        $mediumDuration = config('contracts.medium_duration_days');
+        $longReminder   = config('contracts.long_reminder_days');
+        $mediumReminder = config('contracts.medium_reminder_days');
+
+        if ($duration > $longDuration) {
+            $expiryReminderDate = $endDate->copy()->subDays($longReminder);
+        } elseif ($duration >= $mediumDuration) {
+            $expiryReminderDate = $endDate->copy()->subDays($mediumReminder);
+        } else {
+            $expiryReminderDate = null;
+        }
+
         // Auto-create contract with final price
         $contract = Contract::create([
-            'booking_id'  => $booking->id,
-            'tenant_id'   => $booking->tenant_id,
-            'host_id'     => $request->user()->id,
-            'property_id' => $booking->property_id,
-            'start_date'  => $booking->start_date,
-            'end_date'    => $booking->end_date,
-            'price'       => $finalPrice,
-            'status'      => 'active',
+            'booking_id'           => $booking->id,
+            'tenant_id'            => $booking->tenant_id,
+            'host_id'              => $request->user()->id,
+            'property_id'          => $booking->property_id,
+            'start_date'           => $booking->start_date,
+            'end_date'             => $booking->end_date,
+            'price'                => $finalPrice,
+            'status'               => 'active',
+            'expiry_reminder_date' => $expiryReminderDate,
+            'expiry_reminder_sent' => false,
         ]);
         // Generate PDF
         $pdfPath = ContractPdfService::generate($contract);
@@ -119,10 +140,36 @@ class BookingController extends Controller
         );
 
         return response()->json([
-            'message'      => 'Booking accepted and contract created.',
-            'booking'      => $booking,
-            'contract'     => $contract,
-            'final_price'  => $finalPrice,
+            'message'     => 'Booking accepted and contract created.',
+            'booking'     => $booking,
+            'contract'    => [
+                'id'         => $contract->id,
+                'booking_id' => $contract->booking_id,
+                'start_date' => $contract->start_date,
+                'end_date'   => $contract->end_date,
+                'price'      => $contract->price,
+                'status'     => $contract->status,
+                'pdf_path'   => $contract->pdf_path,
+                'tenant' => [
+                    'id'          => $contract->tenant->id,
+                    'first_name'  => $contract->tenant->first_name,
+                    'second_name' => $contract->tenant->second_name,
+                    'third_name'  => $contract->tenant->third_name,
+                    'last_name'   => $contract->tenant->last_name,
+                    'national_id' => $contract->tenant->national_id,
+                    'phone'       => $contract->tenant->phone,
+                ],
+                'host' => [
+                    'id'          => $contract->host->id,
+                    'first_name'  => $contract->host->first_name,
+                    'second_name' => $contract->host->second_name,
+                    'third_name'  => $contract->host->third_name,
+                    'last_name'   => $contract->host->last_name,
+                    'national_id' => $contract->host->national_id,
+                    'phone'       => $contract->host->phone,
+                ],
+            ],
+            'final_price' => $finalPrice,
         ]);
     }
 
@@ -130,8 +177,8 @@ class BookingController extends Controller
     public function reject(Request $request, $id)
     {
         $booking = Booking::whereHas('property', function ($query) use ($request) {
-                $query->where('host_id', $request->user()->id);
-            })
+            $query->where('host_id', $request->user()->id);
+        })
             ->findOrFail($id);
 
         if ($booking->status !== 'pending') {

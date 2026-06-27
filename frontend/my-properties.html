@@ -264,7 +264,6 @@ async function confirmDelete(){
     if(r.ok){ allProps = allProps.filter(p=>p.id!==deleteId); filterTab(currentTab,document.querySelector('.tab.active')); }
 }
 
-requireAuth();
 loadProperties();
 </script>
 </body>
