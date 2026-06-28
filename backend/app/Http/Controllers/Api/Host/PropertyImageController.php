@@ -8,8 +8,7 @@ use App\Models\PropertyImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class PropertyImageController extends Controller
-{
+class PropertyImageController extends Controller {
     // Upload images for a property
     public function store(Request $request, $propertyId)
     {
@@ -20,9 +19,7 @@ class PropertyImageController extends Controller
             'images'   => 'required|array|max:10',
             'images.*' => 'image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
         $uploaded = [];
-
         foreach ($request->file('images') as $image) {
             $path = $image->store('property_images', 'public');
 
@@ -34,14 +31,12 @@ class PropertyImageController extends Controller
                 'image_path'  => $path,
                 'is_main'     => $isMain,
             ]);
-
             $uploaded[] = [
                 'id'       => $propertyImage->id,
                 'url'      => asset('storage/' . $path),
                 'is_main'  => $isMain,
             ];
         }
-
         return response()->json([
             'message' => 'Images uploaded successfully.',
             'images'  => $uploaded,
