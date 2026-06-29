@@ -42,7 +42,7 @@ class ContractController extends Controller
         $role     = $user->getRoleNames()->first();
         $contract = Contract::findOrFail($id);
 
-        // Access control first ✅
+        // Access control first 
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized.'], 403);
         }
