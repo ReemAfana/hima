@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-<link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style.css?v=20260628-live-fixes">
 <title>Login</title>
 </head>
 <body>
 <div class="center-page">
     <div class="card">
         <div class="logo">حمى</div>
-        <h2>أهلاً بعودتك 👋</h2>
+        <h2>تسجيل الدخول</h2>
 
         <div id="msg"></div>
 
@@ -24,42 +26,23 @@
         </div>
 
         <div class="center-text">
-            <a href="register.html">
-                ليس لديك حساب؟ سجّل الآن
-            </a>
+            <a href="tenant-login.html">دخول المستأجر</a>
+            <span style="color:#9CA3AF;margin:0 0.5rem;">|</span>
+            <a href="host-login.html">دخول المضيف</a>
+        </div>
+
+        <div class="center-text">
+            <a href="register.html">ليس لديك حساب؟ سجّل الآن</a>
         </div>
     </div>
 </div>
-<script src="js/api.js"></script>
+<script src="js/api.js?v=20260628-absolute-nav"></script>
 
 <script>
+captureLoginRedirect();
+
 async function login(){
-
-    const body={
-        email:email.value,
-        password:password.value
-    };
-
-    const res=await fetch(
-        BASE_URL+"/login",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json",
-                "Accept":"application/json"
-            },
-            body:JSON.stringify(body)
-        }
-    );
-
-    const data=await res.json();
-
-    if(res.ok){
-        handleLoginSuccess(data);
-    }else{
-        msg.innerHTML=
-        '<div class="error">بيانات غير صحيحة</div>';
-    }
+    await loginWithRole();
 } 
 // تحقق من URL params بعد التفعيل
 const urlParams = new URLSearchParams(window.location.search);

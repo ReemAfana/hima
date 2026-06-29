@@ -24,6 +24,20 @@ use Illuminate\Auth\Events\Verified;
 // =====================
 // Public routes
 // =====================
+Route::get('/', function () {
+    return response()->json([
+        'name' => 'Hima API',
+        'status' => 'running',
+        'frontend_url' => config('app.frontend_url'),
+        'public_endpoints' => [
+            'properties' => url('/api/properties'),
+            'governorates' => url('/api/governorates'),
+            'login' => url('/api/login'),
+            'register' => url('/api/register'),
+        ],
+    ]);
+});
+
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
@@ -48,25 +62,25 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
 
     if (!$user) {
         return redirect(
-            'http://localhost/hima-frontend/login.html?error=user_not_found'
+            rtrim(config('app.frontend_url'), '/') . '/login.html?error=user_not_found'
         );
     }
 
     if (!URL::hasValidSignature(request())) {
         return redirect(
-            'http://localhost/hima-frontend/login.html?error=invalid_link'
+            rtrim(config('app.frontend_url'), '/') . '/login.html?error=invalid_link'
         );
     }
 
     if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
         return redirect(
-            'http://localhost/hima-frontend/login.html?error=invalid_hash'
+            rtrim(config('app.frontend_url'), '/') . '/login.html?error=invalid_hash'
         );
     }
 
     if ($user->hasVerifiedEmail()) {
         return redirect(
-            'http://localhost/hima-frontend/login.html?verified=already'
+            rtrim(config('app.frontend_url'), '/') . '/login.html?verified=already'
         );
     }
 
@@ -74,7 +88,7 @@ Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
     event(new Verified($user));
 
     return redirect(
-        'http://localhost/hima-frontend/login.html?verified=success'
+        rtrim(config('app.frontend_url'), '/') . '/login.html?verified=success'
     );
 
 })->middleware('signed')->name('verification.verify');
@@ -111,8 +125,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Notifications
     Route::get('/notifications',                 [NotificationController::class, 'index']);
     Route::get('/notifications/unread-count',    [NotificationController::class, 'unreadCount']);
-    Route::patch('/notifications/{id}/read',     [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::patch('/notifications/{id}/read',     [NotificationController::class, 'markAsRead']);
 
     // =====================
     // Host routes
@@ -143,16 +157,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // =====================
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // Properties
-        Route::get('/properties',               [AdminPropertyController::class, 'index']);
         Route::get('/properties/pending',       [AdminPropertyController::class, 'pending']);
+        Route::get('/properties',               [AdminPropertyController::class, 'index']);
         Route::patch('/properties/{id}/accept', [AdminPropertyController::class, 'accept']);
         Route::patch('/properties/{id}/reject', [AdminPropertyController::class, 'reject']);
         Route::delete('/properties/{id}',       [AdminPropertyController::class, 'destroy']);
 
         // Bookings
+        Route::delete('/bookings/stale', [AdminBookingController::class, 'archiveStale']);
         Route::get('/bookings',          [AdminBookingController::class, 'index']);
         Route::get('/bookings/{id}',     [AdminBookingController::class, 'show']);
-        Route::delete('/bookings/stale', [AdminBookingController::class, 'archiveStale']);
     });
 
     // =====================

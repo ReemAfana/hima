@@ -6,12 +6,13 @@
     <title>حمى | طلب حجز</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260628-live-fixes">
     <style>
         body { margin:0; background:#F8F5F0; }
         .container { max-width:700px; margin:0 auto; padding:2rem 1.5rem; }
 
-        .page-title { font-size:1.5rem; font-weight:900; color:#1B4332; margin-bottom:0.3rem; }
+        .page-title { font-size:1.5rem; font-weight:900; color:#1B4332; margin-bottom:0.3rem; display:flex; align-items:center; gap:0.7rem; }
+        .page-title i { flex-shrink:0; color:#1B4332; }
         .page-sub   { color:#6B7280; font-size:0.875rem; margin-bottom:2rem; }
 
         /* Property summary card */
@@ -35,19 +36,46 @@
 
         /* Form card */
         .form-card { background:white; border-radius:16px; border:1px solid #E5E0D8; padding:1.5rem; margin-bottom:1rem; }
-        .form-card h3 { font-size:1rem; font-weight:700; color:#1B4332; margin-bottom:1.2rem; padding-bottom:0.7rem; border-bottom:2px solid #E5E0D8; }
+        .form-card h3 { font-size:1rem; font-weight:700; color:#1B4332; margin-bottom:1.2rem; padding-bottom:0.7rem; border-bottom:2px solid #E5E0D8; display:flex; align-items:center; gap:0.55rem; }
+        .form-card h3 i { flex-shrink:0; }
 
         .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
         .form-group { display:flex; flex-direction:column; gap:0.4rem; }
         .form-group label { font-size:0.85rem; font-weight:600; color:#374151; }
+        .date-field {
+            border:1.5px solid #E5E0D8;
+            border-radius:10px;
+            background:white;
+            display:flex;
+            align-items:center;
+            cursor:pointer;
+            transition:border-color 0.2s, box-shadow 0.2s;
+            position:relative;
+        }
+        .date-field:focus-within {
+            border-color:#2D6A4F;
+            box-shadow:0 0 0 3px rgba(45,106,79,0.1);
+        }
         .form-group input {
-            border:1.5px solid #E5E0D8; border-radius:10px;
+            width:100%;
+            border:0; border-radius:10px;
             padding:0.65rem 0.9rem; font-family:'Cairo',sans-serif;
             font-size:0.9rem; color:#1A1A1A; outline:none;
+            background:transparent;
             transition:border-color 0.2s;
+            cursor:pointer;
+            position:relative;
         }
-        .form-group input:focus { border-color:#2D6A4F; box-shadow:0 0 0 3px rgba(45,106,79,0.1); }
+        .form-group input:focus { box-shadow:none; }
         .form-group input:invalid { border-color:#E5E0D8; }
+        .form-group input[type="date"]::-webkit-calendar-picker-indicator {
+            position:absolute;
+            inset:0;
+            width:100%;
+            height:100%;
+            opacity:0;
+            cursor:pointer;
+        }
 
         /* Summary box */
         .summary-box {
@@ -88,7 +116,7 @@
 <div id="navbar"></div>
 <div class="container">
 
-    <div class="page-title"><i class="fas fa-calendar-check me-2"></i>طلب حجز</div>
+    <div class="page-title"><i class="fas fa-calendar-check"></i><span>طلب حجز</span></div>
     <div class="page-sub">حدد تواريخ الإقامة لإرسال طلب الحجز للمالك</div>
 
     <!-- Property Summary -->
@@ -113,15 +141,19 @@
 
     <!-- Form -->
     <div class="form-card">
-        <h3><i class="fas fa-calendar me-2"></i>تواريخ الإقامة</h3>
+        <h3><i class="fas fa-calendar"></i><span>تواريخ الإقامة</span></h3>
         <div class="form-row">
             <div class="form-group">
-                <label>تاريخ البداية *</label>
-                <input type="date" id="start_date" onchange="calcSummary()">
+                <label for="start_date" onclick="openDatePicker('start_date')">تاريخ البداية *</label>
+                <div class="date-field" onclick="openDatePicker('start_date')">
+                    <input type="date" id="start_date" onchange="calcSummary()" onclick="event.stopPropagation()">
+                </div>
             </div>
             <div class="form-group">
-                <label>تاريخ النهاية *</label>
-                <input type="date" id="end_date" onchange="calcSummary()">
+                <label for="end_date" onclick="openDatePicker('end_date')">تاريخ النهاية *</label>
+                <div class="date-field" onclick="openDatePicker('end_date')">
+                    <input type="date" id="end_date" onchange="calcSummary()" onclick="event.stopPropagation()">
+                </div>
             </div>
         </div>
 
@@ -143,7 +175,7 @@
     </div>
 
     <!-- Actions -->
-    <button class="btn-submit" id="submit-btn" onclick="submitBooking()">
+    <button class="btn-submit" id="submit-btn" type="button">
         <i class="fas fa-paper-plane"></i> إرسال طلب الحجز
     </button>
     <button class="btn-back" onclick="history.back()">
@@ -152,8 +184,8 @@
 
 </div>
 
-<script src="js/api.js"></script>
-<script src="js/navbar.js"></script>
+<script src="js/api.js?v=20260628-absolute-nav"></script>
+<script src="js/navbar.js?v=20260628-live-fixes"></script>
 <script>
 const params = new URLSearchParams(window.location.search);
 const propId = params.get('id');
@@ -206,9 +238,33 @@ function calcSummary(){
     document.getElementById('end_date').min = new Date(s.getTime()+86400000).toISOString().split('T')[0];
 }
 
-function showErr(msg){ const e=document.getElementById('err'); document.getElementById('err-msg').textContent=msg; e.classList.add('show'); }
-function showSuc(msg){ const s=document.getElementById('suc'); document.getElementById('suc-msg').textContent=msg; s.classList.add('show'); }
+function showErr(msg){
+    const e=document.getElementById('err');
+    document.getElementById('err-msg').textContent=msg;
+    e.classList.add('show');
+    e.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function showSuc(msg){
+    const s=document.getElementById('suc');
+    document.getElementById('suc-msg').textContent=msg;
+    s.classList.add('show');
+    s.scrollIntoView({behavior:'smooth',block:'center'});
+}
 function hideAlerts(){ document.getElementById('err').classList.remove('show'); document.getElementById('suc').classList.remove('show'); }
+
+function openDatePicker(id){
+    const input = document.getElementById(id);
+    input.focus();
+    try {
+        if(input.showPicker){
+            input.showPicker();
+        } else {
+            input.click();
+        }
+    } catch (e) {
+        input.click();
+    }
+}
 
 async function submitBooking(){
     hideAlerts();
@@ -227,22 +283,37 @@ async function submitBooking(){
     const btn = document.getElementById('submit-btn');
     btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الإرسال...';
 
-    const r = await fetch(BASE_URL+'/tenant/bookings',{
-        method:'POST', headers:authHeaders(),
-        body:JSON.stringify({ property_id:Number(propId), start_date:start, end_date:end })
-    });
-    const data = await r.json();
+    let r, data;
+    try {
+        r = await fetch(BASE_URL+'/tenant/bookings',{
+            method:'POST', headers:authHeaders(),
+            body:JSON.stringify({ property_id:Number(propId), start_date:start, end_date:end })
+        });
+        data = await r.json();
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب الحجز';
+        showErr('تعذر إرسال الطلب. تأكدي أن الموقع مفتوح من الرابط المحلي وأن الخادم يعمل.');
+        return;
+    }
 
     btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> إرسال طلب الحجز';
 
     if(r.ok){
         showSuc('✅ تم إرسال طلب الحجز بنجاح! سيتم إشعارك عند الرد.');
         setTimeout(()=>window.location.href='my-bookings.html', 2500);
+    } else if(r.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.setItem('redirect_after_login', `booking-form.html?id=${propId}`);
+        showErr('انتهت جلسة تسجيل الدخول. سجّلي الدخول مرة أخرى لإرسال طلب الحجز.');
+        setTimeout(()=>goToPage('tenant-login.html'), 1400);
     } else {
         showErr(Object.values(data.errors||{})[0]?.[0] || data.message || 'حدث خطأ');
     }
 }
 
+requireAuth();
+document.getElementById('submit-btn').addEventListener('click', submitBooking);
 loadProperty();
 </script>
 </body>

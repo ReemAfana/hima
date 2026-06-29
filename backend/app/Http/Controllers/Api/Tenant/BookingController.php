@@ -21,7 +21,8 @@ class BookingController extends Controller
     }
 
     // Submit a booking request
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         // تحقق من اكتمال البيانات
         if (!$request->user()->isTenantReady()) {
             return response()->json([
@@ -34,13 +35,16 @@ class BookingController extends Controller
             'start_date'  => 'required|date|after_or_equal:today',
             'end_date'    => 'required|date|after:start_date',
         ]);
+
         $property = Property::findOrFail($data['property_id']);
+
         // Only available properties can be booked
         if ($property->status !== 'accepted' || $property->availability !== 'available') {
             return response()->json([
                 'message' => 'This property is not available for booking.',
             ], 403);
         }
+
         // Prevent duplicate pending booking by same tenant
         $exists = Booking::where('tenant_id', $request->user()->id)
             ->where('property_id', $data['property_id'])
@@ -52,6 +56,7 @@ class BookingController extends Controller
                 'message' => 'You already have a pending booking request for this property.',
             ], 403);
         }
+
         $booking = Booking::create([
             'tenant_id'   => $request->user()->id,
             'property_id' => $data['property_id'],

@@ -20,9 +20,8 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        
-        'start_date' => 'date:Y-m-d', // يوم تقويمي — لا علاقة بالتوقيت
-        'end_date'   => 'date:Y-m-d', // يوم تقويمي — لا علاقة بالتوقيت
+        'start_date' => 'date',
+        'end_date'   => 'date',
         'price'      => 'decimal:2',
     ];
 

@@ -12,6 +12,7 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $properties = Property::where('host_id', $request->user()->id)
+            ->with(['images', 'mainImage', 'governorate', 'city', 'neighborhood'])
             ->latest()
             ->get();
 
@@ -19,8 +20,9 @@ class PropertyController extends Controller
     }
 
     // Submit a new property
-    public function store(Request $request){
-        // check if the profile info are complete 
+    public function store(Request $request)
+    {
+        // تحقق من اكتمال البيانات
         if (!$request->user()->isHostReady()) {
             return response()->json([
                 'message'  => 'Please complete your profile before listing a property.',
@@ -43,6 +45,7 @@ class PropertyController extends Controller
             'has_electricity' => 'boolean',
             'is_ready'        => 'boolean',
         ]);
+
         $property = Property::create([
             ...$data,
             'host_id'      => $request->user()->id,
@@ -70,6 +73,7 @@ class PropertyController extends Controller
     public function show(Request $request, $id)
     {
         $property = Property::where('host_id', $request->user()->id)
+            ->with(['images', 'mainImage', 'governorate', 'city', 'neighborhood'])
             ->findOrFail($id);
 
         return response()->json($property);
