@@ -12,7 +12,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             AdminSeeder::class,
             GovernorateSeeder::class,
-            PropertySeeder::class,
         ]);
     }
 }

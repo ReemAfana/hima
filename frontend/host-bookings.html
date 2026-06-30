@@ -6,7 +6,7 @@
     <title>حمى | طلبات الحجز</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20260628-live-fixes">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         body { margin:0; background:#F8F5F0; }
         .layout { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
@@ -25,13 +25,10 @@
         .btn-logout { display:flex; align-items:center; gap:0.7rem; padding:0.7rem 1.2rem; color:rgba(255,255,255,0.4); cursor:pointer; font-size:0.875rem; background:none; border:none; font-family:'Cairo',sans-serif; width:100%; text-align:right; margin-top:1rem; }
         .btn-logout:hover { color:#E74C3C; }
         .main { padding:2rem; }
-        .page-title { display:flex; align-items:center; gap:0.6rem; font-size:1.5rem; font-weight:900; color:#1B4332; margin-bottom:1.5rem; }
-        .page-title i { flex-shrink:0; }
-        .tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:0.75rem; margin-bottom:1.5rem; }
-        .tab { min-height:44px; width:100%; padding:0.5rem 1.2rem; border-radius:20px; font-size:0.85rem; font-weight:600; cursor:pointer; border:1.5px solid #E5E0D8; background:white; color:#6B7280; font-family:'Cairo',sans-serif; display:flex; align-items:center; justify-content:center; gap:0.35rem; }
+        .page-title { font-size:1.5rem; font-weight:900; color:#1B4332; margin-bottom:1.5rem; }
+        .tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+        .tab { padding:0.5rem 1.2rem; border-radius:20px; font-size:0.85rem; font-weight:600; cursor:pointer; border:1.5px solid #E5E0D8; background:white; color:#6B7280; font-family:'Cairo',sans-serif; }
         .tab.active { background:#1B4332; color:white; border-color:#1B4332; }
-        #pending-count { display:none; align-items:center; justify-content:center; min-width:18px; height:18px; background:#D4A853; color:#1B4332; font-size:0.65rem; padding:1px 6px; border-radius:10px; }
-        #pending-count:not(:empty) { display:inline-flex; }
 
         .booking-card { background:white; border-radius:14px; border:1px solid #E5E0D8; padding:1.3rem; margin-bottom:0.9rem; transition:box-shadow 0.2s; }
         .booking-card:hover { box-shadow:0 4px 16px rgba(27,67,50,0.1); }
@@ -79,7 +76,7 @@
         .toast.show { display:flex; }
         .empty-state { text-align:center; padding:3rem; color:#6B7280; }
         .empty-state i { font-size:3rem; color:#E5E0D8; display:block; margin-bottom:1rem; }
-        @media(max-width:768px){ .layout{grid-template-columns:1fr;} .sidebar{display:none;} .tabs{grid-template-columns:repeat(2,minmax(0,1fr));} }
+        @media(max-width:768px){ .layout{grid-template-columns:1fr;} .sidebar{display:none;} }
     </style>
 </head>
 <body>
@@ -93,24 +90,24 @@
         </div>
         <div class="nav-section">القائمة الرئيسية</div>
         <a class="nav-item" href="dashboard-host.html"><i class="fas fa-th-large"></i> لوحة التحكم</a>
-        <a class="nav-item" href="host-properties.html"><i class="fas fa-search"></i> تصفح المنصة</a>
+        <a class="nav-item" href="properties.html"><i class="fas fa-search"></i> تصفح المنصة</a>
         <div class="nav-section">إدارة عقاراتي</div>
         <a class="nav-item" href="my-properties.html"><i class="fas fa-building"></i> عقاراتي</a>
         <a class="nav-item" href="property-form.html"><i class="fas fa-plus-circle"></i> إضافة عقار</a>
         <a class="nav-item active" href="host-bookings.html"><i class="fas fa-calendar-check"></i> طلبات الحجز</a>
         <a class="nav-item" href="my-contracts-host.html"><i class="fas fa-file-contract"></i> عقودي</a>
         <div class="nav-section">حسابي</div>
-        <a class="nav-item" href="notifications.html?v=role-sidebar"><i class="fas fa-bell"></i> الإشعارات</a>
-        <a class="nav-item" href="profile.html?v=role-sidebar"><i class="fas fa-user-cog"></i> الملف الشخصي</a>
+        <a class="nav-item" href="notifications.html"><i class="fas fa-bell"></i> الإشعارات</a>
+        <a class="nav-item" href="profile.html"><i class="fas fa-user-cog"></i> الملف الشخصي</a>
         <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
     </aside>
 
     <main class="main">
-        <div class="page-title"><i class="fas fa-calendar-check"></i><span>طلبات الحجز</span></div>
+        <div class="page-title"><i class="fas fa-calendar-check me-2"></i>طلبات الحجز</div>
 
         <div class="tabs">
             <button class="tab active" onclick="filterTab('all',this)">الكل</button>
-            <button class="tab" onclick="filterTab('pending',this)">معلق <span id="pending-count"></span></button>
+            <button class="tab" onclick="filterTab('pending',this)">معلق <span id="pending-count" style="background:#D4A853;color:#1B4332;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-right:4px;"></span></button>
             <button class="tab" onclick="filterTab('accepted',this)">مقبول</button>
             <button class="tab" onclick="filterTab('rejected',this)">مرفوض</button>
             <button class="tab" onclick="filterTab('cancelled',this)">ملغي</button>
@@ -148,14 +145,14 @@
 
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
-<script src="js/api.js?v=20260628-absolute-nav"></script>
+<script src="js/api.js"></script>
 <script>
 const statusMap = {pending:'معلق',accepted:'مقبول',rejected:'مرفوض',cancelled:'ملغي'};
 const statusCls = {pending:'badge-pending',accepted:'badge-accepted',rejected:'badge-rejected',cancelled:'badge-cancelled'};
 let allBookings=[], actionId=null, currentTab='all';
 
 async function init(){
-    requireAuth('host-login.html');
+    requireAuth();
     const name = localStorage.getItem('name')||'';
     document.getElementById('sidebar-name').textContent = name;
     document.getElementById('avatar').textContent = name.charAt(0)||'H';

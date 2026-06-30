@@ -6,7 +6,7 @@
     <title>حمى | لوحة المستأجر</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20260628-tenant-welcome">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         body { margin:0; background:#F8F5F0; }
 
@@ -102,14 +102,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        .welcome-bar h2 {
-            font-size: 1.3rem;
-            font-weight: 900;
-            margin-bottom: 0.2rem;
-            color: #FFF8E7;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.22);
-        }
-        .welcome-bar h2 span { color: inherit; }
+        .welcome-bar h2 { font-size: 1.3rem; font-weight: 900; margin-bottom: 0.2rem; }
         .welcome-bar p  { color: rgba(255,255,255,0.7); font-size: 0.875rem; }
         .welcome-bar .icon { font-size: 3rem; opacity: 0.2; }
 
@@ -220,7 +213,7 @@
         <a class="nav-item active" href="dashboard-tenant.html">
             <i class="fas fa-th-large"></i> لوحة التحكم
         </a>
-        <a class="nav-item" href="tenant-properties.html">
+        <a class="nav-item" href="properties.html">
             <i class="fas fa-search"></i> تصفح العقارات
         </a>
 
@@ -235,11 +228,11 @@
         <a class="nav-item" href="my-favorites.html">
             <i class="fas fa-heart"></i> مفضلتي
         </a>
-        <a class="nav-item" href="notifications.html?v=role-sidebar">
+        <a class="nav-item" href="notifications.html">
             <i class="fas fa-bell"></i> الإشعارات
             <span id="notif-badge" style="background:#C0392B;color:white;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-right:auto;display:none;"></span>
         </a>
-        <a class="nav-item" href="profile.html?v=role-sidebar">
+        <a class="nav-item" href="profile.html">
             <i class="fas fa-user-cog"></i> الملف الشخصي
         </a>
 
@@ -295,7 +288,7 @@
         <!-- Quick Links -->
         <div class="section-header"><div class="section-title">روابط سريعة</div></div>
         <div class="quick-grid" style="margin-bottom:1.5rem;">
-            <a class="quick-card" href="tenant-properties.html">
+            <a class="quick-card" href="properties.html">
                 <div class="quick-card-icon" style="background:#D1FAE5;color:#065F46;"><i class="fas fa-search"></i></div>
                 <div>
                     <div class="quick-card-title">تصفح العقارات</div>
@@ -337,13 +330,12 @@
     </main>
 </div>
 
-<script src="js/api.js?v=20260628-absolute-nav"></script>
+<script src="js/api.js"></script>
 <script>
 const statusMap = {pending:'قيد المراجعة',accepted:'مقبول',rejected:'مرفوض',cancelled:'ملغي'};
 const statusCls = {pending:'badge-pending',accepted:'badge-accepted',rejected:'badge-rejected',cancelled:'badge-cancelled'};
 
 async function init(){
-    requireAuth();
     const name = localStorage.getItem('name')||'';
     document.getElementById('welcome-name').textContent = name;
     document.getElementById('sidebar-name').textContent = name;
@@ -372,7 +364,7 @@ async function init(){
     const recent = (bookings||[]).slice(0,3);
     const el = document.getElementById('recent-bookings');
     if(!recent.length){
-        el.innerHTML='<div class="empty-mini">لا توجد حجوزات بعد — <a href="tenant-properties.html" style="color:#2D6A4F">تصفح العقارات</a></div>';
+        el.innerHTML='<div class="empty-mini">لا توجد حجوزات بعد — <a href="properties.html" style="color:#2D6A4F">تصفح العقارات</a></div>';
         return;
     }
     el.innerHTML = recent.map(b=>`
