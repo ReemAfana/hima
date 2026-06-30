@@ -6,7 +6,7 @@
     <title>حمى | لوحة المستأجر</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260628-tenant-welcome">
     <style>
         body { margin:0; background:#F8F5F0; }
 
@@ -102,7 +102,14 @@
             justify-content: space-between;
             align-items: center;
         }
-        .welcome-bar h2 { font-size: 1.3rem; font-weight: 900; margin-bottom: 0.2rem; }
+        .welcome-bar h2 {
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 0.2rem;
+            color: #FFF8E7;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.22);
+        }
+        .welcome-bar h2 span { color: inherit; }
         .welcome-bar p  { color: rgba(255,255,255,0.7); font-size: 0.875rem; }
         .welcome-bar .icon { font-size: 3rem; opacity: 0.2; }
 
@@ -149,7 +156,9 @@
             background: white; border-radius: 12px; border: 1px solid #E5E0D8;
             padding: 1rem 1.2rem; margin-bottom: 0.7rem;
             display: flex; align-items: center; gap: 1rem;
+            cursor: pointer; text-decoration: none; color: inherit; transition: box-shadow 0.2s;
         }
+        .booking-row:hover { box-shadow: 0 4px 16px rgba(27,67,50,0.1); }
         .booking-prop { flex: 1; min-width: 0; }
         .booking-prop-name { font-weight: 700; font-size: 0.9rem; color: #1A1A1A; }
         .booking-dates { font-size: 0.78rem; color: #6B7280; margin-top: 0.2rem; }
@@ -213,7 +222,7 @@
         <a class="nav-item active" href="dashboard-tenant.html">
             <i class="fas fa-th-large"></i> لوحة التحكم
         </a>
-        <a class="nav-item" href="properties.html">
+        <a class="nav-item" href="tenant-properties.html">
             <i class="fas fa-search"></i> تصفح العقارات
         </a>
 
@@ -228,11 +237,11 @@
         <a class="nav-item" href="my-favorites.html">
             <i class="fas fa-heart"></i> مفضلتي
         </a>
-        <a class="nav-item" href="notifications.html">
+        <a class="nav-item" href="notifications.html?v=role-sidebar">
             <i class="fas fa-bell"></i> الإشعارات
             <span id="notif-badge" style="background:#C0392B;color:white;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-right:auto;display:none;"></span>
         </a>
-        <a class="nav-item" href="profile.html">
+        <a class="nav-item" href="profile.html?v=role-sidebar">
             <i class="fas fa-user-cog"></i> الملف الشخصي
         </a>
 
@@ -288,7 +297,7 @@
         <!-- Quick Links -->
         <div class="section-header"><div class="section-title">روابط سريعة</div></div>
         <div class="quick-grid" style="margin-bottom:1.5rem;">
-            <a class="quick-card" href="properties.html">
+            <a class="quick-card" href="tenant-properties.html">
                 <div class="quick-card-icon" style="background:#D1FAE5;color:#065F46;"><i class="fas fa-search"></i></div>
                 <div>
                     <div class="quick-card-title">تصفح العقارات</div>
@@ -330,12 +339,13 @@
     </main>
 </div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=20260628-absolute-nav"></script>
 <script>
 const statusMap = {pending:'قيد المراجعة',accepted:'مقبول',rejected:'مرفوض',cancelled:'ملغي'};
 const statusCls = {pending:'badge-pending',accepted:'badge-accepted',rejected:'badge-rejected',cancelled:'badge-cancelled'};
 
 async function init(){
+    requireAuth();
     const name = localStorage.getItem('name')||'';
     document.getElementById('welcome-name').textContent = name;
     document.getElementById('sidebar-name').textContent = name;
@@ -364,11 +374,11 @@ async function init(){
     const recent = (bookings||[]).slice(0,3);
     const el = document.getElementById('recent-bookings');
     if(!recent.length){
-        el.innerHTML='<div class="empty-mini">لا توجد حجوزات بعد — <a href="properties.html" style="color:#2D6A4F">تصفح العقارات</a></div>';
+        el.innerHTML='<div class="empty-mini">لا توجد حجوزات بعد — <a href="tenant-properties.html" style="color:#2D6A4F">تصفح العقارات</a></div>';
         return;
     }
     el.innerHTML = recent.map(b=>`
-        <div class="booking-row">
+        <a class="booking-row" href="property-details.html?id=${b.property?.id}">
             <div class="booking-prop">
                 <div class="booking-prop-name">${b.property?.title||'عقار'}</div>
                 <div class="booking-dates">
@@ -378,7 +388,7 @@ async function init(){
             </div>
             <div class="booking-price">${Number(b.price||0).toLocaleString('ar')} ₪</div>
             <span class="badge ${statusCls[b.status]||''}">${statusMap[b.status]||b.status}</span>
-        </div>`).join('');
+        </a>`).join('');
 }
 
 init();

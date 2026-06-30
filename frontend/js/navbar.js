@@ -1,94 +1,126 @@
 function renderNavbar() {
     const name = localStorage.getItem('name') || '';
     const role = localStorage.getItem('role') || '';
+    const token = localStorage.getItem('token');
 
     const roleMap = {
-        'admin':  'مشرف',
-        'host':   'صاحب عقار',
-        'tenant': 'مستأجر',
+        admin: 'مشرف',
+        host: 'صاحب عقار',
+        tenant: 'مستأجر',
+    };
+
+    const dashboardMap = {
+        admin: 'dashboard-admin.html',
+        host: 'dashboard-host.html',
+        tenant: 'dashboard-tenant.html',
     };
 
     const navbar = document.getElementById('navbar');
     if (!navbar) return;
 
-    navbar.innerHTML = `
-        <nav style="
-            background: #fff;
-            border-bottom: 1px solid #ece7df;
-            padding: 0 34px;
-            height: 72px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            direction: rtl;
-            font-family: Cairo, sans-serif;
-            width: 100%;
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-        ">
-            <a href="index.html" style="
-                display: flex;
-                align-items: center;
-                gap: 11px;
-                font-size: 24px;
-                font-weight: 800;
-                color: #1d5c2e;
-                text-decoration: none;
-            ">
-                <span style="
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 11px;
-                    background: #1d5c2e;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 6px 16px rgba(29,92,46,.18);
-                ">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none">
-                        <path d="M4 11.5 12 5l8 6.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M6 10.5V19h12v-8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10.5 19v-4.5h3V19" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                حِمى
-            </a>
+    const guestLinks = `
+        <a class="drawer-link drawer-link-primary" href="tenant-login.html"><span><i class="fas fa-user"></i></span><b>تسجيل الدخول</b></a>
+        <a class="drawer-link drawer-link-primary" href="host-login.html"><span><i class="fas fa-user-plus"></i></span><b>كن مضيفا</b></a>
+        <div class="drawer-divider"></div>
+        <a class="drawer-link" href="properties.html"><span><i class="fas fa-home"></i></span><b>الصفحة الرئيسية</b></a>
+        <a class="drawer-link" href="properties.html#filters"><span><i class="fas fa-filter"></i></span><b>الفلترة</b></a>
+        <a class="drawer-link" href="policies.html"><span><i class="fas fa-file-contract"></i></span><b>السياسات والخصوصية</b></a>
+    `;
 
-            <div style="display:flex;align-items:center;gap:16px;">
-                <span style="color:#6f6a5d;font-size:14px;font-weight:700;">
-                    ${name} — ${roleMap[role] || role}
-                </span>
-                <button onclick="logout()" style="
-                    width:auto;
-                    background: #f3efe8;
-                    border: none;
-                    color: #6f6a5d;
-                    border-radius: 10px;
-                    padding: 9px 16px;
-                    font-family: Cairo, sans-serif;
-                    font-size: 13px;
-                    font-weight: 800;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                " onmouseover="this.style.background='#edf8ed';this.style.color='#1d5c2e'"
-                   onmouseout="this.style.background='#f3efe8';this.style.color='#6f6a5d'">
-                    تسجيل الخروج
-                </button>
+    const tenantLinks = `
+        <a class="drawer-link" href="tenant-properties.html"><span><i class="fas fa-home"></i></span><b>العقارات</b></a>
+        <a class="drawer-link" href="dashboard-tenant.html"><span><i class="fas fa-chart-line"></i></span><b>لوحة المستأجر</b></a>
+        <a class="drawer-link" href="my-bookings.html"><span><i class="fas fa-calendar-check"></i></span><b>حجوزاتي</b></a>
+        <a class="drawer-link" href="my-favorites.html"><span><i class="fas fa-heart"></i></span><b>المفضلة</b></a>
+        <a class="drawer-link" href="my-contracts.html"><span><i class="fas fa-file-signature"></i></span><b>عقودي</b></a>
+        <a class="drawer-link" href="notifications.html?v=role-sidebar"><span><i class="fas fa-bell"></i></span><b>الإشعارات</b></a>
+        <a class="drawer-link" href="profile.html?v=role-sidebar"><span><i class="fas fa-user"></i></span><b>الملف الشخصي</b></a>
+        <div class="drawer-divider"></div>
+        <button class="drawer-link drawer-button" onclick="logout()"><span><i class="fas fa-sign-out-alt"></i></span><b>تسجيل الخروج</b></button>
+    `;
+
+    const hostLinks = `
+        <a class="drawer-link" href="dashboard-host.html"><span><i class="fas fa-chart-line"></i></span><b>لوحة المضيف</b></a>
+        <a class="drawer-link" href="host-properties.html"><span><i class="fas fa-search"></i></span><b>تصفح المنصة</b></a>
+        <a class="drawer-link" href="property-form.html"><span><i class="fas fa-plus-circle"></i></span><b>إضافة عقار</b></a>
+        <a class="drawer-link" href="my-properties.html"><span><i class="fas fa-building"></i></span><b>عقاراتي</b></a>
+        <a class="drawer-link" href="host-bookings.html"><span><i class="fas fa-calendar-check"></i></span><b>طلبات الحجز</b></a>
+        <a class="drawer-link" href="my-contracts-host.html"><span><i class="fas fa-file-signature"></i></span><b>العقود</b></a>
+        <a class="drawer-link" href="notifications.html?v=role-sidebar"><span><i class="fas fa-bell"></i></span><b>الإشعارات</b></a>
+        <a class="drawer-link" href="profile.html?v=role-sidebar"><span><i class="fas fa-user"></i></span><b>الملف الشخصي</b></a>
+        <div class="drawer-divider"></div>
+        <button class="drawer-link drawer-button" onclick="logout()"><span><i class="fas fa-sign-out-alt"></i></span><b>تسجيل الخروج</b></button>
+    `;
+
+    const adminLinks = `
+        <a class="drawer-link" href="dashboard-admin.html"><span><i class="fas fa-chart-line"></i></span><b>لوحة المشرف</b></a>
+        <a class="drawer-link" href="admin-properties.html"><span><i class="fas fa-building"></i></span><b>إدارة العقارات</b></a>
+        <a class="drawer-link" href="admin-bookings.html"><span><i class="fas fa-calendar-check"></i></span><b>إدارة الحجوزات</b></a>
+        <a class="drawer-link" href="notifications.html?v=role-sidebar"><span><i class="fas fa-bell"></i></span><b>الإشعارات</b></a>
+        <a class="drawer-link" href="profile.html?v=role-sidebar"><span><i class="fas fa-user"></i></span><b>الملف الشخصي</b></a>
+        <div class="drawer-divider"></div>
+        <button class="drawer-link drawer-button" onclick="logout()"><span><i class="fas fa-sign-out-alt"></i></span><b>تسجيل الخروج</b></button>
+    `;
+
+    const drawerLinks = !token
+        ? guestLinks
+        : role === 'host'
+            ? hostLinks
+            : role === 'admin'
+                ? adminLinks
+                : tenantLinks;
+
+    const drawerLabel = token ? (roleMap[role] || role) : 'زائر';
+    const drawerName = token ? (name || drawerLabel) : 'حمى';
+    const helpText = token ? 'تحتاج مساعدة؟ تواصل مع الدعم' : 'تصفح العقارات كزائر أو سجّل للمتابعة';
+    const homeHref = token && role === 'tenant' ? 'tenant-properties.html' : token && role === 'host' ? 'host-properties.html' : 'properties.html';
+
+    navbar.innerHTML = `
+        <nav class="site-nav">
+            <div class="nav-start">
+                <a class="nav-brand" href="${homeHref}"><span>حمى</span></a>
+            </div>
+            <a class="nav-home-left" href="${homeHref}" aria-label="الصفحة الرئيسية"><i class="fas fa-home"></i></a>
+            <div class="nav-scrim" onclick="closeNavMenu()"></div>
+            <div class="nav-drawer" aria-label="القائمة الرئيسية">
+                <div class="drawer-head">
+                    <a class="drawer-brand" href="${homeHref}">
+                        <span class="drawer-logo"><i class="fas fa-home"></i></span>
+                        <span>
+                            <b>${drawerName}</b>
+                            <small>${drawerLabel}</small>
+                        </span>
+                    </a>
+                    <button class="drawer-close" type="button" aria-label="إغلاق القائمة" onclick="closeNavMenu()">×</button>
+                </div>
+                <div class="drawer-links">
+                    ${drawerLinks}
+                </div>
+                <div class="drawer-help">
+                    <b>مساعدة</b>
+                    <span>${helpText}</span>
+                </div>
             </div>
         </nav>
-        <div style="height: 72px;"></div>
+        <div class="site-nav-spacer"></div>
     `;
 }
 
+function toggleNavMenu(button) {
+    const nav = button.closest('.site-nav');
+    const open = nav.classList.toggle('menu-open');
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
 
-document.addEventListener('DOMContentLoaded', function() {
-    if (!localStorage.getItem('token')) {
-        window.location.href = 'login.html';
-        return;
-    }
+function closeNavMenu() {
+    document.querySelectorAll('.site-nav.menu-open').forEach(nav => {
+        nav.classList.remove('menu-open');
+        nav.querySelector('.nav-menu-toggle')?.setAttribute('aria-expanded', 'false');
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderNavbar);
+} else {
     renderNavbar();
-});
+}

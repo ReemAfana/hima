@@ -6,7 +6,7 @@
     <title>حمى | لوحة الأدمن</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=20260628-live-fixes">
     <style>
         body { margin:0; background:#F8F5F0; }
         .layout { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
@@ -127,11 +127,11 @@
         <a class="nav-item" href="admin-bookings.html"><i class="fas fa-calendar-check"></i> إدارة الحجوزات</a>
 
         <div class="nav-section">النظام</div>
-        <a class="nav-item" href="notifications.html">
+        <a class="nav-item" href="notifications.html?v=role-sidebar">
             <i class="fas fa-bell"></i> الإشعارات
             <span id="notif-badge" style="background:#C0392B;color:white;font-size:0.65rem;padding:1px 6px;border-radius:10px;margin-right:auto;display:none;"></span>
         </a>
-        <a class="nav-item" href="profile.html"><i class="fas fa-user-cog"></i> الملف الشخصي</a>
+        <a class="nav-item" href="profile.html?v=role-sidebar"><i class="fas fa-user-cog"></i> الملف الشخصي</a>
         <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
     </aside>
 
@@ -234,7 +234,7 @@
 
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
-<script src="js/api.js"></script>
+<script src="js/api.js?v=20260628-absolute-nav"></script>
 <script>
 const typeMap    = {apartment:'شقة',villa:'فيلا',land:'أرض',chalet:'شاليه',commercial:'تجاري',parking:'موقف'};
 const statusMap  = {pending:'قيد المراجعة',accepted:'مقبول',rejected:'مرفوض',cancelled:'ملغي'};
@@ -243,6 +243,7 @@ const statusCls  = {pending:'badge-pending',accepted:'badge-accepted',rejected:'
 let rejectId = null;
 
 async function init(){
+    requireAuth('login.html');
     const name = localStorage.getItem('name')||'';
     document.getElementById('welcome-name').textContent = name;
     document.getElementById('sidebar-name').textContent = name;
