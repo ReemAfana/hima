@@ -164,7 +164,40 @@ function authHeaders(){
     };
 }
 
-//LOGOUT 
+const _authPages = ['tenant-login.html','host-login.html','login.html','register.html','verify.html'];
+(function redirectIfLoggedIn(){
+    const page = window.location.pathname.split('/').pop();
+    if (!_authPages.includes(page)) return;
+    const token = localStorage.getItem('token');
+    const role  = localStorage.getItem('role');
+    if (!token || !role) return;
+    const dashMap = { tenant:'dashboard-tenant.html', host:'dashboard-host.html', admin:'dashboard-admin.html' };
+    const dest = dashMap[role] || 'properties.html';
+    window.location.replace(appUrl(dest));
+})();
+
+async function initNotifDot() {
+    if (!localStorage.getItem('token')) return;
+    try {
+        const res = await fetch(BASE_URL + '/notifications/unread-count', { headers: authHeaders() });
+        if (!res.ok) return;
+        const data = await res.json();
+        const count = data.unread_count ?? data.count ?? 0;
+        document.querySelectorAll('a[href*="notifications.html"]').forEach(link => {
+            let badge = link.querySelector('.nav-notif-badge');
+            if (!count) { if (badge) badge.remove(); return; }
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'nav-notif-badge';
+                link.appendChild(badge);
+            }
+            badge.textContent = count > 99 ? '99+' : count;
+        });
+    } catch (e) {}
+}
+document.addEventListener('DOMContentLoaded', initNotifDot);
+
+//LOGOUT
 async function logout() {
     const token = localStorage.getItem('token');
 
