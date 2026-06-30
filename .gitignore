@@ -1,0 +1,12 @@
+# Dependencies 
+node_modules/ 
+albait/node_modules/ 
+albait/package-lock.json 
+ 
+# Local dev servers 
+frontend/server.py 
+ 
+# OS files 
+.DS_Store 
+Thumbs.db 
+desktop.ini 
