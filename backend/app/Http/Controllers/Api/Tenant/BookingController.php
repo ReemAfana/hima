@@ -21,11 +21,12 @@ class BookingController extends Controller
     }
 
     // Submit a booking request
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         // تحقق من اكتمال البيانات
         if (!$request->user()->isTenantReady()) {
             return response()->json([
-                'message'  => 'Please complete your profile before booking.',
+                'message'  => 'يرجى إكمال ملفك الشخصي قبل الحجز.',
                 'redirect' => 'profile/complete',
             ], 403);
         }
@@ -34,13 +35,16 @@ class BookingController extends Controller
             'start_date'  => 'required|date|after_or_equal:today',
             'end_date'    => 'required|date|after:start_date',
         ]);
+
         $property = Property::findOrFail($data['property_id']);
+
         // Only available properties can be booked
         if ($property->status !== 'accepted' || $property->availability !== 'available') {
             return response()->json([
-                'message' => 'This property is not available for booking.',
+                'message' => 'هذا العقار غير متاح للحجز.',
             ], 403);
         }
+
         // Prevent duplicate pending booking by same tenant
         $exists = Booking::where('tenant_id', $request->user()->id)
             ->where('property_id', $data['property_id'])
@@ -49,9 +53,10 @@ class BookingController extends Controller
 
         if ($exists) {
             return response()->json([
-                'message' => 'You already have a pending booking request for this property.',
+                'message' => 'لديك بالفعل طلب حجز معلق لهذا العقار.',
             ], 403);
         }
+
         $booking = Booking::create([
             'tenant_id'   => $request->user()->id,
             'property_id' => $data['property_id'],
@@ -63,13 +68,13 @@ class BookingController extends Controller
         // Notify host
         NotificationService::send(
             $property->host_id,
-            'New Booking Request',
-            'You have a new booking request for "' . $property->title . '".',
+            'طلب حجز جديد',
+            'لديك طلب حجز جديد لـ "' . $property->title . '".',
             'new_booking',
             $booking->id
         );
         return response()->json([
-            'message' => 'Booking request submitted successfully.',
+            'message' => 'تم إرسال طلب الحجز بنجاح.',
             'booking' => $booking,
         ], 201);
     }
@@ -92,7 +97,7 @@ class BookingController extends Controller
 
         if ($booking->status !== 'pending') {
             return response()->json([
-                'message' => 'Only pending bookings can be edited.',
+                'message' => 'يمكن تعديل الحجوزات المعلقة فقط.',
             ], 403);
         }
 
@@ -108,9 +113,9 @@ $endDate   = $data['end_date']   ?? $booking->end_date->format('Y-m-d');
 // Validate that end_date is always after start_date
 if ($endDate <= $startDate) {
     return response()->json([
-        'message' => 'The end date must be a date after the start date.',
+        'message' => 'يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية.',
         'errors'  => [
-            'end_date' => ['The end date must be a date after the start date.'],
+            'end_date' => ['يجب أن يكون تاريخ الانتهاء بعد تاريخ البداية.'],
         ],
     ], 422);
 }
@@ -122,13 +127,13 @@ $booking->update($data);
         $property = $booking->property;
         NotificationService::send(
             $property->host_id,
-            'Booking Edited',
-            'A tenant has edited their booking request for "' . $property->title . '".',
+            'تم تعديل الحجز',
+            'قام مستأجر بتعديل طلب الحجز لـ "' . $property->title . '".',
             'booking_edited',
             $booking->id
         );
         return response()->json([
-            'message' => 'Booking updated successfully.',
+            'message' => 'تم تحديث الحجز بنجاح.',
             'booking' => $booking,
         ]);
     }
@@ -141,7 +146,7 @@ $booking->update($data);
 
         if ($booking->status !== 'pending') {
             return response()->json([
-                'message' => 'Only pending bookings can be cancelled.',
+                'message' => 'يمكن إلغاء الحجوزات المعلقة فقط.',
             ], 403);
         }
 
@@ -150,13 +155,13 @@ $booking->update($data);
         $property = $booking->property;
         NotificationService::send(
             $property->host_id,
-            'Booking Cancelled',
-            'A tenant has cancelled their booking request for "' . $property->title . '".',
+            'تم إلغاء الحجز',
+            'قام مستأجر بإلغاء طلب الحجز لـ "' . $property->title . '".',
             'booking_cancelled',
             $booking->id
         );
         return response()->json([
-            'message' => 'Booking cancelled successfully.',
+            'message' => 'تم إلغاء الحجز بنجاح.',
         ]);
     }
 }

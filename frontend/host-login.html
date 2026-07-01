@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/style.css?v=20260628-auth-tabs">
+<title>حمى | دخول المضيف</title>
+</head>
+<body>
+<div class="center-page">
+    <div class="card auth-card">
+        <div class="logo">حمى</div>
+        <h2 id="auth-title">تسجيل دخول المضيف</h2>
+
+        <div class="auth-tabs" role="tablist">
+            <button class="auth-tab active" id="login-tab" type="button" onclick="setAuthMode('login')">تسجيل الدخول</button>
+            <button class="auth-tab" id="signup-tab" type="button" onclick="setAuthMode('signup')">كن مضيفا</button>
+        </div>
+
+        <div id="msg"></div>
+
+        <div class="auth-panel active" id="login-panel">
+            <div class="auth-context">
+                <i class="fas fa-home"></i>
+                <div>
+                    دخول المضيف
+                    <span>أدر عقاراتك وحجوزاتك من لوحة المضيف</span>
+                </div>
+            </div>
+
+            <input id="email" placeholder="البريد الإلكتروني">
+            <input id="password" type="password" placeholder="كلمة المرور">
+
+            <button onclick="login()">تسجيل الدخول</button>
+
+            <div class="center-text">
+                <a href="forgot-password.html">نسيت كلمة المرور؟</a>
+            </div>
+
+        </div>
+
+        <div class="auth-panel" id="signup-panel">
+            <div class="auth-context">
+                <i class="fas fa-key"></i>
+                <div>
+                    إنشاء حساب مضيف
+                    <span>ابدأ بإضافة عقاراتك وإدارة طلبات الحجز</span>
+                </div>
+            </div>
+
+            <input id="first_name" type="text" placeholder="الاسم الأول">
+            <input id="register_email" type="email" placeholder="البريد الإلكتروني">
+            <input id="register_password" type="password" placeholder="كلمة المرور">
+            <input id="confirm_password" type="password" placeholder="تأكيد كلمة المرور">
+
+            <button onclick="registerHost()">إنشاء حساب</button>
+
+            <div class="auth-switch-row">
+                لديك حساب؟ <button type="button" onclick="setAuthMode('login')">سجّل دخولك</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="verify-modal" id="verify-modal" aria-hidden="true">
+    <div class="verify-modal-card">
+        <h3><i class="fas fa-link"></i> رابط تفعيل الحساب</h3>
+        <p>
+            تم إنشاء الحساب. انسخ رابط التفعيل وافتحه لتفعيل حسابك.
+        </p>
+        <textarea class="verify-url-box" id="verify-url" readonly></textarea>
+        <div class="verify-modal-actions">
+            <button type="button" class="secondary" onclick="copyVerifyUrl()">نسخ الرابط</button>
+        </div>
+        <div class="auth-switch-row">
+            <button type="button" onclick="closeVerifyModal()">العودة لتسجيل الدخول</button>
+        </div>
+    </div>
+</div>
+
+<script src="js/api.js?v=20260628-absolute-nav"></script>
+<script>
+captureLoginRedirect();
+
+function setAuthMode(mode){
+    const isSignup = mode === 'signup';
+    document.getElementById('login-tab').classList.toggle('active', !isSignup);
+    document.getElementById('signup-tab').classList.toggle('active', isSignup);
+    document.getElementById('login-panel').classList.toggle('active', !isSignup);
+    document.getElementById('signup-panel').classList.toggle('active', isSignup);
+    document.getElementById('auth-title').textContent = isSignup ? 'إنشاء حساب مضيف' : 'تسجيل دخول المضيف';
+    document.getElementById('msg').innerHTML = '';
+}
+
+async function login(){
+    await loginWithRole('host');
+}
+
+async function registerHost(){
+    const first_name = document.getElementById('first_name').value.trim();
+    const email = document.getElementById('register_email').value.trim();
+    const password = document.getElementById('register_password').value;
+    const confirm_password = document.getElementById('confirm_password').value;
+    const msg = document.getElementById('msg');
+
+    if(!first_name || !email || !password || !confirm_password){
+        msg.innerHTML = '<div class="error">يرجى تعبئة جميع الحقول</div>';
+        return;
+    }
+    if(password.length < 8){
+        msg.innerHTML = '<div class="error">كلمة المرور يجب أن تكون 8 أحرف على الأقل</div>';
+        return;
+    }
+    if(password !== confirm_password){
+        msg.innerHTML = '<div class="error">كلمتا المرور غير متطابقتين</div>';
+        return;
+    }
+
+    try {
+        const response = await fetch(BASE_URL + '/register', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body:JSON.stringify({
+                first_name,
+                email,
+                password,
+                password_confirmation:confirm_password,
+                role:'host'
+            })
+        });
+        const data = await response.json();
+
+        if(response.ok){
+            localStorage.setItem('pending_verify_email', email);
+            localStorage.setItem('pending_verify_role', 'host');
+            if(data.verification_url){
+                localStorage.setItem('pending_verify_url', data.verification_url);
+                showVerifyModal(data.verification_url, email);
+                return;
+            }
+            goToPage('verify.html');
+            return;
+        }
+        if(data.errors){
+            let errors = '';
+            Object.values(data.errors).forEach(arr => errors += arr[0] + '<br>');
+            msg.innerHTML = '<div class="error">' + errors + '</div>';
+            return;
+        }
+        msg.innerHTML = '<div class="error">' + (data.message || 'حدث خطأ') + '</div>';
+    } catch(e){
+        msg.innerHTML = '<div class="error">تعذر الاتصال بالسيرفر</div>';
+    }
+}
+
+function showVerifyModal(url, email){
+    document.getElementById('email').value = email;
+    document.getElementById('verify-url').value = url;
+    document.getElementById('verify-modal').classList.add('show');
+    document.getElementById('verify-modal').setAttribute('aria-hidden', 'false');
+}
+
+function closeVerifyModal(){
+    document.getElementById('verify-modal').classList.remove('show');
+    document.getElementById('verify-modal').setAttribute('aria-hidden', 'true');
+    setAuthMode('login');
+    document.getElementById('msg').innerHTML = '<div class="success">تم إنشاء الحساب. فعّل بريدك الإلكتروني ثم سجّل الدخول.</div>';
+}
+
+async function copyVerifyUrl(){
+    const field = document.getElementById('verify-url');
+    field.select();
+    try {
+        await navigator.clipboard.writeText(field.value);
+        document.getElementById('msg').innerHTML = '<div class="success">تم نسخ رابط التفعيل</div>';
+    } catch(e) {
+        document.execCommand('copy');
+        document.getElementById('msg').innerHTML = '<div class="success">تم نسخ رابط التفعيل</div>';
+    }
+}
+
+const params = new URLSearchParams(window.location.search);
+if(params.get('mode') === 'signup'){
+    setAuthMode('signup');
+}
+if(params.get('verified') === 'success'){
+    localStorage.removeItem('pending_verify_email');
+    localStorage.removeItem('pending_verify_role');
+    document.getElementById('msg').innerHTML = '<div class="success">✅ تم تفعيل حسابك! يمكنك الآن تسجيل الدخول</div>';
+}
+if(params.get('verified') === 'already'){
+    document.getElementById('msg').innerHTML = '<div class="success">حسابك مفعّل مسبقاً</div>';
+}
+if(params.get('error') === 'invalid_link'){
+    document.getElementById('msg').innerHTML = '<div class="error">رابط التفعيل غير صالح أو منتهي الصلاحية</div>';
+}
+</script>
+</body>
+</html>

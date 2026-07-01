@@ -28,16 +28,16 @@ class ReviewController extends Controller
         // Contract must be ended or cancelled
         if ($contract->status === 'active') {
             return response()->json([
-                'message' => 'You can only review after the contract ends or is cancelled.',
+                'message' => 'يمكنك التقييم فقط بعد انتهاء العقد أو إلغائه.',
             ], 403);
         }
 
         // Only parties of the contract can review
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         // Check if review window is open
@@ -48,7 +48,7 @@ class ReviewController extends Controller
 
         if (!$window) {
             return response()->json([
-                'message' => 'Review period has expired or not yet available.',
+                'message' => 'انتهت فترة التقييم أو لم تبدأ بعد.',
             ], 403);
         }
 
@@ -70,7 +70,7 @@ class ReviewController extends Controller
 
         if ($exists) {
             return response()->json([
-                'message' => 'You have already reviewed this contract.',
+                'message' => 'لقد قيّمت هذا العقد مسبقاً.',
             ], 403);
         }
 
@@ -90,14 +90,14 @@ class ReviewController extends Controller
         // Notify reviewee
         NotificationService::send(
             $revieweeId,
-            'New Review Received',
-            'You have received a new ' . $data['rating'] . '-star review for "' . $contract->property->title . '".',
+            'تقييم جديد',
+            'تلقيت تقييماً جديداً بـ ' . $data['rating'] . ' نجوم لـ "' . $contract->property->title . '".',
             'review_received',
             $review->id
         );
 
         return response()->json([
-            'message' => 'Review submitted successfully.',
+            'message' => 'تم إرسال التقييم بنجاح.',
             'review'  => $review,
         ], 201);
     }

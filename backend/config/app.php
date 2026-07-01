@@ -54,6 +54,16 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'frontend_url' => (function () {
+        $frontendUrl = env('FRONTEND_URL', 'https://hima.noorjkord.workers.dev');
+
+        if (str_contains($frontendUrl, 'your-cloudflare-pages-url.pages.dev')) {
+            return 'https://hima.noorjkord.workers.dev';
+        }
+
+        return $frontendUrl;
+    })(),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -78,9 +88,9 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'ar'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'ar'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 

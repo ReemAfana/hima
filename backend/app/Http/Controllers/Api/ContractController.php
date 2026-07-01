@@ -42,12 +42,12 @@ class ContractController extends Controller
         $role     = $user->getRoleNames()->first();
         $contract = Contract::findOrFail($id);
 
-        // Access control first 
+        // Access control first ✅
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         // Load data based on role
@@ -81,15 +81,15 @@ class ContractController extends Controller
 
         // Only tenant or host can cancel
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         if ($contract->status !== 'active') {
             return response()->json([
-                'message' => 'Only active contracts can be cancelled.',
+                'message' => 'يمكن إلغاء العقود النشطة فقط.',
             ], 403);
         }
 
@@ -121,16 +121,16 @@ class ContractController extends Controller
         // Send review reminder to both parties
         NotificationService::send(
             $contract->tenant_id,
-            'Review Reminder',
-            'Your contract for "' . $contract->property->title . '" has ended. Please take a moment to leave a review.',
+            'تذكير بالتقييم',
+            'انتهى عقدك لـ "' . $contract->property->title . '". يرجى ترك تقييمك.',
             'review_reminder',
             $contract->id
         );
 
         NotificationService::send(
             $contract->host_id,
-            'Review Reminder',
-            'Your contract for "' . $contract->property->title . '" has ended. Please take a moment to review the tenant.',
+            'تذكير بالتقييم',
+            'انتهى عقدك لـ "' . $contract->property->title . '". يرجى تقييم المستأجر.',
             'review_reminder',
             $contract->id
         );
@@ -139,8 +139,8 @@ class ContractController extends Controller
             // Notify host
             NotificationService::send(
                 $contract->host_id,
-                'Contract Cancelled',
-                'The tenant has cancelled the contract for "' . $contract->property->title . '".',
+                'تم إلغاء العقد',
+                'قام المستأجر بإلغاء العقد لـ "' . $contract->property->title . '".',
                 'contract_cancelled',
                 $contract->id
             );
@@ -148,15 +148,15 @@ class ContractController extends Controller
             // Notify tenant
             NotificationService::send(
                 $contract->tenant_id,
-                'Contract Cancelled',
-                'The host has cancelled the contract for "' . $contract->property->title . '".',
+                'تم إلغاء العقد',
+                'قام المضيف بإلغاء العقد لـ "' . $contract->property->title . '".',
                 'contract_cancelled',
                 $contract->id
             );
         }
 
         return response()->json([
-            'message'  => 'Contract cancelled successfully.',
+            'message'  => 'تم إلغاء العقد بنجاح.',
             'contract' => $contract,
         ]);
     }
@@ -170,23 +170,23 @@ class ContractController extends Controller
         // Access control
 
         if ($role === 'admin') {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         if (!$contract->pdf_path) {
-            return response()->json(['message' => 'PDF not generated yet.'], 404);
+            return response()->json(['message' => 'لم يتم إنشاء ملف PDF بعد.'], 404);
         }
 
         $fullPath = storage_path('app/public/' . $contract->pdf_path);
 
         if (!file_exists($fullPath)) {
-            return response()->json(['message' => 'PDF file not found.'], 404);
+            return response()->json(['message' => 'ملف PDF غير موجود.'], 404);
         }
 
         return response()->download($fullPath, 'contract_' . $contract->id . '.pdf');
@@ -201,17 +201,17 @@ class ContractController extends Controller
 
         // Access control
         if ($role === 'admin') {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'tenant' && $contract->tenant_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
         if ($role === 'host' && $contract->host_id !== $user->id) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         if (!$contract->pdf_path) {
-            return response()->json(['message' => 'PDF not generated yet.'], 404);
+            return response()->json(['message' => 'لم يتم إنشاء ملف PDF بعد.'], 404);
         }
 
         return response()->json([
@@ -225,21 +225,21 @@ class ContractController extends Controller
         $user = $request->user();
 
         if (!$user->hasRole('admin')) {
-            return response()->json(['message' => 'Unauthorized.'], 403);
+            return response()->json(['message' => 'غير مصرح.'], 403);
         }
 
         $contract = Contract::findOrFail($id);
 
         if ($contract->status === 'active') {
             return response()->json([
-                'message' => 'Cannot archive an active contract.',
+                'message' => 'لا يمكن أرشفة عقد نشط.',
             ], 403);
         }
 
         $contract->delete();
 
         return response()->json([
-            'message' => 'Contract archived successfully.',
+            'message' => 'تم أرشفة العقد بنجاح.',
         ]);
     }
 }

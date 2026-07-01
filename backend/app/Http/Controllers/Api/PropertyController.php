@@ -81,18 +81,30 @@ class PropertyController extends Controller
 
         if (!$property->host->phone) {
             return response()->json([
-                'message' => 'Host has no phone number listed.',
+                'message' => 'المضيف لم يُدرج رقم هاتف.',
             ], 404);
         }
 
-        $message = "Hello, I found your property on Hima platform and I'm interested:\n\n"
-            . "Property: {$property->title}\n"
-            . "Location: {$property->location}\n"
-            . "Price: {$property->price} per month\n"
-            . "Type: {$property->type}\n\n"
-            . "Can we discuss more details?";
+        $message = "مرحباً، وجدت عقارك على منصة حمى وأنا مهتم:\n\n"
+            . "العقار: {$property->title}\n"
+            . "الموقع: {$property->location}\n"
+            . "السعر: {$property->price} شهرياً\n"
+            . "النوع: {$property->type}\n\n"
+            . "هل يمكننا مناقشة التفاصيل؟";
 
-        $phone = preg_replace('/[^0-9]/', '', $property->host->phone);
+        $phone = preg_replace('/[^0-9+]/', '', $property->host->phone);
+
+        // Normalise to international format for wa.me (no leading + or 00)
+        if (str_starts_with($phone, '+')) {
+            $phone = substr($phone, 1);
+        } elseif (str_starts_with($phone, '00')) {
+            $phone = substr($phone, 2);
+        } elseif (str_starts_with($phone, '0')) {
+            // Local Palestinian number — prepend country code 970
+            $phone = '970' . substr($phone, 1);
+        }
+
+        $phone = preg_replace('/[^0-9]/', '', $phone);
         $link  = 'https://wa.me/' . $phone . '?text=' . urlencode($message);
 
         return response()->json([

@@ -17,15 +17,29 @@ use App\Http\Controllers\Api\Admin\PropertyController as AdminPropertyController
 use App\Http\Controllers\Api\Tenant\BookingController as TenantBookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\URL;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 
 // =====================
 // Public routes
 // =====================
+Route::get('/', function () {
+    return response()->json([
+        'name' => 'Hima API',
+        'status' => 'running',
+        'frontend_url' => config('app.frontend_url'),
+        'public_endpoints' => [
+            'properties' => url('/api/properties'),
+            'governorates' => url('/api/governorates'),
+            'login' => url('/api/login'),
+            'register' => url('/api/register'),
+        ],
+    ]);
+});
+
 Route::post('/register',        [AuthController::class, 'register']);
 Route::post('/login',           [AuthController::class, 'login']);
+Route::post('/admin/login',     [AuthController::class, 'adminLogin']);
 Route::post('/forgot-password', [PasswordResetController::class, 'sendLink']);
 Route::post('/reset-password',  [PasswordResetController::class, 'reset']);
 
@@ -42,47 +56,61 @@ Route::get('/governorates/{id}/cities',      [LocationController::class, 'cities
 Route::get('/cities/{id}/neighborhoods',     [LocationController::class, 'neighborhoods']);
 
 // Email verification
-Route::get('/email/verify/{id}/{hash}', function ($id, $hash) {
+Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) {
 
     $user = User::find($id);
 
     if (!$user) {
         return redirect(
-            'http://localhost/hima-frontend/login.html?error=user_not_found'
+            rtrim(config('app.frontend_url'), '/') . '/tenant-login.html?error=user_not_found'
         );
     }
 
-    if (!URL::hasValidSignature(request())) {
-        return redirect(
-            'http://localhost/hima-frontend/login.html?error=invalid_link'
-        );
+    $role     = $user->getRoleNames()->first();
+    $loginPage = $role === 'host' ? 'host-login.html' : 'tenant-login.html';
+    $base      = rtrim(config('app.frontend_url'), '/');
+
+    if (!$request->hasValidRelativeSignature()) {
+        return redirect("{$base}/{$loginPage}?error=invalid_link");
     }
 
     if (!hash_equals(sha1($user->getEmailForVerification()), $hash)) {
-        return redirect(
-            'http://localhost/hima-frontend/login.html?error=invalid_hash'
-        );
+        return redirect("{$base}/{$loginPage}?error=invalid_link");
     }
 
     if ($user->hasVerifiedEmail()) {
-        return redirect(
-            'http://localhost/hima-frontend/login.html?verified=already'
-        );
+        return redirect("{$base}/{$loginPage}?verified=already");
     }
 
     $user->markEmailAsVerified();
     event(new Verified($user));
 
-    return redirect(
-        'http://localhost/hima-frontend/login.html?verified=success'
-    );
+    return redirect("{$base}/{$loginPage}?verified=success");
 
-})->middleware('signed')->name('verification.verify');
+})->name('verification.verify');
 
 Route::post('/email/resend', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
-    return response()->json(['message' => 'Verification link resent.']);
+    return response()->json(['message' => 'تم إعادة إرسال رابط التفعيل.']);
 })->middleware(['auth:sanctum', 'throttle:6,1']);
+
+Route::post('/email/resend-public', function (Request $request) {
+    $request->validate(['email' => 'required|email']);
+
+    $user = User::where('email', $request->email)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'سيتم إرسال رابط التفعيل إذا كان الحساب موجوداً.']);
+    }
+
+    if ($user->hasVerifiedEmail()) {
+        return response()->json(['message' => 'البريد الإلكتروني مفعّل مسبقاً.'], 422);
+    }
+
+    $user->sendEmailVerificationNotification();
+
+    return response()->json(['message' => 'تم إعادة إرسال رابط التفعيل.']);
+})->middleware('throttle:6,1');
 
 // =====================
 // Protected routes
@@ -111,8 +139,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Notifications
     Route::get('/notifications',                 [NotificationController::class, 'index']);
     Route::get('/notifications/unread-count',    [NotificationController::class, 'unreadCount']);
-    Route::patch('/notifications/{id}/read',     [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::patch('/notifications/{id}/read',     [NotificationController::class, 'markAsRead']);
 
     // =====================
     // Host routes
@@ -143,16 +171,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // =====================
     Route::middleware('role:admin')->prefix('admin')->group(function () {
         // Properties
-        Route::get('/properties',               [AdminPropertyController::class, 'index']);
         Route::get('/properties/pending',       [AdminPropertyController::class, 'pending']);
+        Route::get('/properties',               [AdminPropertyController::class, 'index']);
         Route::patch('/properties/{id}/accept', [AdminPropertyController::class, 'accept']);
         Route::patch('/properties/{id}/reject', [AdminPropertyController::class, 'reject']);
         Route::delete('/properties/{id}',       [AdminPropertyController::class, 'destroy']);
 
         // Bookings
+        Route::delete('/bookings/stale', [AdminBookingController::class, 'archiveStale']);
         Route::get('/bookings',          [AdminBookingController::class, 'index']);
         Route::get('/bookings/{id}',     [AdminBookingController::class, 'show']);
-        Route::delete('/bookings/stale', [AdminBookingController::class, 'archiveStale']);
+        Route::delete('/bookings/{id}',  [AdminBookingController::class, 'destroy']);
     });
 
     // =====================
