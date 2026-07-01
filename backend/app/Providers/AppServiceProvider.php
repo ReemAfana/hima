@@ -13,24 +13,31 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceRootUrl(rtrim(config('app.url'), '/'));
+            URL::forceScheme('https');
+        }
+
         // Reset Password
         ResetPassword::createUrlUsing(function ($user, string $token) {
-            return 'http://127.0.0.1:5500/reset-password.html'
+            return rtrim(config('app.frontend_url'), '/') . '/reset-password.html'
                 . '?token=' . $token
                 . '&email=' . urlencode($user->email);
         });
 
         // Email Verification
         VerifyEmail::createUrlUsing(function ($notifiable) {
-            $verifyUrl = URL::temporarySignedRoute(
+            $verifyPath = URL::temporarySignedRoute(
                 'verification.verify',
                 now()->addMinutes(60),
                 [
                     'id'   => $notifiable->getKey(),
                     'hash' => sha1($notifiable->getEmailForVerification()),
-                ]
+                ],
+                false
             );
-            return $verifyUrl;
+
+            return rtrim(config('app.url'), '/') . $verifyPath;
         });
     }
 }

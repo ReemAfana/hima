@@ -12,7 +12,12 @@ class PropertyController extends Controller
     // List all properties
     public function index()
     {
-        $properties = Property::with('host:id,first_name,last_name,email')
+        $properties = Property::with([
+                'host:id,first_name,last_name,email,phone',
+                'images',
+                'governorate:id,name',
+                'city:id,name',
+            ])
             ->latest()
             ->get();
 
@@ -22,7 +27,12 @@ class PropertyController extends Controller
     // List pending properties only
     public function pending()
     {
-        $properties = Property::with('host:id,first_name,last_name,email')
+        $properties = Property::with([
+                'host:id,first_name,last_name,email,phone',
+                'images',
+                'governorate:id,name',
+                'city:id,name',
+            ])
             ->where('status', 'pending')
             ->latest()
             ->get();
@@ -35,7 +45,7 @@ class PropertyController extends Controller
         $property = Property::findOrFail($id);
         if (!in_array($property->status, ['pending', 'rejected'])) {
               return response()->json([
-             'message' => 'Only pending or rejected properties can be accepted.',
+             'message' => 'يمكن قبول العقارات المعلقة أو المرفوضة فقط.',
              ], 403);
     }
         $property->update([
@@ -46,14 +56,14 @@ class PropertyController extends Controller
         // Notify host
         NotificationService::send(
             $property->host_id,
-            'Property Approved',
-            'Your property "' . $property->title . '" has been approved and is now live.',
+            'تمت الموافقة على العقار',
+            'تمت الموافقة على عقارك "' . $property->title . '" وهو متاح الآن.',
             'property_approved',
             $property->id
         );
 
         return response()->json([
-            'message'  => 'Property accepted and is now live.',
+            'message'  => 'تم قبول العقار وهو متاح الآن.',
             'property' => $property,
         ]);
     }
@@ -63,13 +73,13 @@ class PropertyController extends Controller
         $property = Property::findOrFail($id);
         if (!in_array($property->status, ['pending', 'accepted'])) {
             return response()->json([
-                'message' => 'Only pending or accepted properties can be rejected.',
+                'message' => 'يمكن رفض العقارات المعلقة أو المقبولة فقط.',
                 ], 403);
         }
         // Cannot reject if booked (active contract)
         if ($property->availability === 'booked') {
             return response()->json([
-                'message' => 'Cannot reject a property with an active contract.',
+                'message' => 'لا يمكن رفض عقار له عقد نشط.',
             ], 403);
         }
         $data = $request->validate([
@@ -81,9 +91,8 @@ class PropertyController extends Controller
             $booking->update(['status' => 'cancelled']);
             NotificationService::send(
                 $booking->tenant_id,
-                'Booking Cancelled',
-                'Your booking request for "' . $property->title . '" has been cancelled. 
-                The property has been temporarily suspended by the administration.',
+                'تم إلغاء الحجز',
+                'تم إلغاء طلب الحجز لـ "' . $property->title . '". تم تعليق العقار مؤقتاً من قبل الإدارة.',
                 'booking_cancelled',
                 $booking->id
             );
@@ -96,13 +105,13 @@ class PropertyController extends Controller
         // Notify host
         NotificationService::send(
             $property->host_id,
-            'Property Rejected',
-            'Your property "' . $property->title . '" has been rejected. Reason: ' . $data['rejection_reason'],
+            'تم رفض العقار',
+            'تم رفض عقارك "' . $property->title . '". السبب: ' . $data['rejection_reason'],
             'property_rejected',
             $property->id
         );
         return response()->json([
-            'message'  => 'Property rejected.',
+            'message'  => 'تم رفض العقار.',
             'property' => $property,
         ]);
     }
@@ -114,14 +123,14 @@ class PropertyController extends Controller
 
         if ($property->availability === 'booked') {
             return response()->json([
-                'message' => 'Cannot delete a booked property.',
+                'message' => 'لا يمكن حذف عقار محجوز.',
             ], 403);
         }
 
         $property->delete();
 
         return response()->json([
-            'message' => 'Property archived successfully.',
+            'message' => 'تم أرشفة العقار بنجاح.',
         ]);
     }
 }

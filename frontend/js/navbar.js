@@ -10,7 +10,7 @@ function renderNavbar() {
     };
 
     const dashboardMap = {
-        admin: 'dashboard-admin.html',
+        admin: 'admin-dashboard.html',
         host: 'dashboard-host.html',
         tenant: 'dashboard-tenant.html',
     };
@@ -53,9 +53,10 @@ function renderNavbar() {
     `;
 
     const adminLinks = `
-        <a class="drawer-link" href="dashboard-admin.html"><span><i class="fas fa-chart-line"></i></span><b>لوحة المشرف</b></a>
+        <a class="drawer-link" href="admin-dashboard.html"><span><i class="fas fa-chart-line"></i></span><b>لوحة المشرف</b></a>
         <a class="drawer-link" href="admin-properties.html"><span><i class="fas fa-building"></i></span><b>إدارة العقارات</b></a>
         <a class="drawer-link" href="admin-bookings.html"><span><i class="fas fa-calendar-check"></i></span><b>إدارة الحجوزات</b></a>
+        <a class="drawer-link" href="admin-contracts.html"><span><i class="fas fa-file-contract"></i></span><b>عقود المنصة</b></a>
         <a class="drawer-link" href="notifications.html?v=role-sidebar"><span><i class="fas fa-bell"></i></span><b>الإشعارات</b></a>
         <a class="drawer-link" href="profile.html?v=role-sidebar"><span><i class="fas fa-user"></i></span><b>الملف الشخصي</b></a>
         <div class="drawer-divider"></div>
@@ -73,7 +74,7 @@ function renderNavbar() {
     const drawerLabel = token ? (roleMap[role] || role) : 'زائر';
     const drawerName = token ? (name || drawerLabel) : 'حمى';
     const helpText = token ? 'تحتاج مساعدة؟ تواصل مع الدعم' : 'تصفح العقارات كزائر أو سجّل للمتابعة';
-    const homeHref = token && role === 'tenant' ? 'tenant-properties.html' : token && role === 'host' ? 'host-properties.html' : 'properties.html';
+    const homeHref = token && role === 'admin' ? 'admin-dashboard.html' : token && role === 'tenant' ? 'tenant-properties.html' : token && role === 'host' ? 'host-properties.html' : 'properties.html';
 
     navbar.innerHTML = `
         <nav class="site-nav">

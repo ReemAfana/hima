@@ -12,6 +12,7 @@ class PropertyController extends Controller
     public function index(Request $request)
     {
         $properties = Property::where('host_id', $request->user()->id)
+            ->with(['images', 'mainImage', 'governorate', 'city', 'neighborhood'])
             ->latest()
             ->get();
 
@@ -19,11 +20,12 @@ class PropertyController extends Controller
     }
 
     // Submit a new property
-    public function store(Request $request){
-        // check if the profile info are complete 
+    public function store(Request $request)
+    {
+        // تحقق من اكتمال البيانات
         if (!$request->user()->isHostReady()) {
             return response()->json([
-                'message'  => 'Please complete your profile before listing a property.',
+                'message'  => 'يرجى إكمال ملفك الشخصي قبل إضافة عقار.',
                 'redirect' => 'profile/complete',
             ], 403);
         }
@@ -43,6 +45,7 @@ class PropertyController extends Controller
             'has_electricity' => 'boolean',
             'is_ready'        => 'boolean',
         ]);
+
         $property = Property::create([
             ...$data,
             'host_id'      => $request->user()->id,
@@ -54,14 +57,14 @@ class PropertyController extends Controller
         foreach ($admins as $admin) {
             NotificationService::send(
                 $admin->id,
-                'New Property Submitted',
-                'A new property "' . $property->title . '" has been submitted and requires your review.',
+                'عقار جديد مُقدَّم',
+                'تم تقديم عقار جديد "' . $property->title . '" ويتطلب مراجعتك.',
                 'new_property_submitted',
                 $property->id
             );
         }
         return response()->json([
-            'message'  => 'Property submitted successfully. Waiting for admin approval.',
+            'message'  => 'تم تقديم العقار بنجاح. بانتظار موافقة الإدارة.',
             'property' => $property,
         ], 201);
     }
@@ -70,6 +73,7 @@ class PropertyController extends Controller
     public function show(Request $request, $id)
     {
         $property = Property::where('host_id', $request->user()->id)
+            ->with(['images', 'mainImage', 'governorate', 'city', 'neighborhood'])
             ->findOrFail($id);
 
         return response()->json($property);
@@ -84,7 +88,7 @@ class PropertyController extends Controller
         // Cannot edit if booked
         if ($property->availability === 'booked') {
             return response()->json([
-                'message' => 'Cannot edit a booked property.',
+                'message' => 'لا يمكن تعديل عقار محجوز.',
             ], 403);
         }
 
@@ -121,8 +125,8 @@ class PropertyController extends Controller
                 $booking->update(['status' => 'cancelled']);
                  NotificationService::send(
                 $booking->tenant_id,
-                'Booking Cancelled',
-                'Your booking request for "' . $property->title . '" has been cancelled because the property details were updated and is now under review.',
+                'تم إلغاء الحجز',
+                'تم إلغاء طلب الحجز لـ "' . $property->title . '" بسبب تحديث تفاصيل العقار وهو الآن قيد المراجعة.',
                 'booking_cancelled',
                   $booking->id
         );
@@ -137,15 +141,15 @@ $property->update($data);
             foreach ($admins as $admin) {
                 NotificationService::send(
                     $admin->id,
-                    'Property Modified',
-                    'The property "' . $property->title . '" has been modified and may require your review.',
+                    'تم تعديل العقار',
+                    'تم تعديل العقار "' . $property->title . '" وقد يتطلب مراجعتك.',
                     'property_modified',
                     $property->id
                 );
             }
         }
         return response()->json([
-            'message'  => 'Property updated successfully.',
+            'message'  => 'تم تحديث العقار بنجاح.',
             'property' => $property,
         ]);
     }
@@ -158,13 +162,13 @@ $property->update($data);
 
         if ($property->status !== 'accepted') {
             return response()->json([
-                'message' => 'Property must be accepted before changing availability.',
+                'message' => 'يجب قبول العقار قبل تغيير الإتاحة.',
             ], 403);
         }
 
         if ($property->availability === 'booked') {
             return response()->json([
-                'message' => 'Cannot change availability of a booked property.',
+                'message' => 'لا يمكن تغيير إتاحة عقار محجوز.',
             ], 403);
         }
 
@@ -175,7 +179,7 @@ $property->update($data);
         $property->save();
 
         return response()->json([
-            'message'      => 'Availability updated.',
+            'message'      => 'تم تحديث الإتاحة.',
             'availability' => $property->availability,
         ]);
     }
@@ -188,14 +192,14 @@ $property->update($data);
 
         if ($property->availability === 'booked') {
             return response()->json([
-                'message' => 'Cannot delete a booked property.',
+                'message' => 'لا يمكن حذف عقار محجوز.',
             ], 403);
         }
 
         $property->delete();
 
         return response()->json([
-            'message' => 'Property archived successfully.',
+            'message' => 'تم أرشفة العقار بنجاح.',
         ]);
     }
 }
