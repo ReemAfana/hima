@@ -203,8 +203,8 @@ async function loadProperty(){
     if(!r.ok){ window.location.href='properties.html'; return; }
     property = await r.json();
 
-    const main = property.images?.find(i=>i.is_main)||property.images?.[0];
-    const img  = main?`<img src="${main.url}" alt="">`:`<div class="no-img"><i class="fas fa-building"></i></div>`;
+    const main = property.images?.find(i=>i.is_main && i.url)||property.images?.find(i=>i.url);
+    const img  = main?.url?`<img src="${main.url}" alt="" onerror="this.parentElement.innerHTML='<div class=&quot;no-img&quot;><i class=&quot;fas fa-building&quot;></i></div>'">`:`<div class="no-img"><i class="fas fa-building"></i></div>`;
     const loc  = [property.governorate?.name, property.city?.name, property.neighborhood?.name].filter(Boolean).join(' - ')||'غير محدد';
 
     document.getElementById('prop-summary').innerHTML = `
@@ -214,32 +214,6 @@ async function loadProperty(){
             <div class="prop-summary-loc"><i class="fas fa-map-marker-alt me-1"></i>${loc}</div>
             <div class="prop-summary-price">${Number(property.price).toLocaleString('ar')} ₪ <span>/ شهر</span></div>
         </div>`;
-}
-
-function toDateInputValue(date){
-    if(!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
-}
-
-function normalizeDateValue(value){
-    if(!value) return '';
-    const text = String(value).trim();
-    if(/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
-    if(/^\d{4}\/\d{2}\/\d{2}$/.test(text)) return text.split('/').join('-');
-    return '';
-}
-
-function syncDateInput(input){
-    const normalized = normalizeDateValue(input.value) || toDateInputValue(input.valueAsDate);
-    if(normalized){
-        input.dataset.selectedDate = normalized;
-    }
-    return normalized;
-}
-
-function getDateValue(id){
-    const input = document.getElementById(id);
-    return syncDateInput(input) || normalizeDateValue(input.dataset.selectedDate);
 }
 
 function toDateInputValue(date){
